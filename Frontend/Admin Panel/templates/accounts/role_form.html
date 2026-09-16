@@ -1,0 +1,271 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Natours Travel{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+
+    <!-- ==========================================
+         Header
+    =========================================== -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+        <div>
+
+            <a href="{% url 'accounts:role_list' %}"
+               class="text-decoration-none text-secondary small">
+                <i class="bi bi-arrow-left me-1"></i>
+                Back to Roles
+            </a>
+
+            <h2 class="fw-bold text-white mt-2 mb-1">
+                {{ role.name }}
+            </h2>
+
+            <p class="text-secondary mb-0">
+                Configure access permissions for the
+                <strong>{{ role.name }}</strong> role.
+            </p>
+
+        </div>
+
+        <div class="text-end">
+
+            <span class="badge bg-warning text-dark fs-6">
+                {{ role.code }}
+            </span>
+
+            {% if role.is_system_protected %}
+            <div class="mt-2">
+                <span class="badge bg-primary">
+                    <i class="bi bi-shield-check me-1"></i>
+                    System Protected
+                </span>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="card bg-slate-900 border-slate-800 shadow">
+
+            <!-- ==========================================
+                 Card Header
+            =========================================== -->
+
+            <div class="card-header border-bottom border-slate-800 d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h5 class="text-white fw-bold mb-1">
+                        <i class="bi bi-shield-lock-fill text-warning me-2"></i>
+                        Permission Groups
+                    </h5>
+
+                    <small class="text-secondary">
+                        Permissions are assigned by feature groups. Enabling a group automatically grants every permission inside that module.
+                    </small>
+
+                </div>
+
+                <button
+                    class="btn btn-primary"
+                    type="submit">
+
+                    <i class="bi bi-check-lg me-2"></i>
+
+                    Save Changes
+
+                </button>
+
+            </div>
+
+
+            <!-- ==========================================
+                 Permission Groups
+            =========================================== -->
+
+            <div class="card-body">
+
+                {% regroup available_permissions by category as permission_groups %}
+
+                <div class="row g-4">
+
+                    {% for group in permission_groups %}
+
+                    <div class="col-lg-4 col-md-6">
+
+                        <div class="card bg-slate-800 border-slate-700 h-100 permission-card">
+
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between align-items-start">
+
+                                    <div>
+
+                                        <div class="form-check">
+
+                                            <input
+                                                class="form-check-input permission-group-toggle"
+                                                type="checkbox"
+                                                id="group{{ forloop.counter }}"
+                                                data-group="{{ forloop.counter }}">
+
+                                            <label
+                                                class="form-check-label fw-bold text-white"
+                                                for="group{{ forloop.counter }}">
+
+                                                {{ group.grouper }}
+
+                                            </label>
+
+                                        </div>
+
+                                        <small class="text-secondary ms-4">
+
+                                            {{ group.list|length }}
+                                            Permission{{ group.list|length|pluralize }}
+
+                                        </small>
+
+                                    </div>
+
+                                    <span class="badge bg-dark text-warning">
+
+                                        Module
+
+                                    </span>
+
+                                </div>
+
+
+                                <hr class="border-secondary-subtle my-3">
+
+
+                                <!-- Permission Preview -->
+
+                                <div class="small text-secondary">
+
+                                    {% for permission in group.list|slice:":5" %}
+
+                                        <div class="mb-1">
+
+                                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+
+                                            {{ permission.name }}
+
+                                        </div>
+
+                                    {% endfor %}
+
+                                    {% if group.list|length > 5 %}
+
+                                    <div class="text-warning mt-2">
+
+                                        + {{ group.list|length|add:"-5" }} more permissions
+
+                                    </div>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <!-- Hidden Inputs -->
+
+                                <div class="d-none">
+
+                                    {% for permission in group.list %}
+
+                                    <input
+                                        type="checkbox"
+                                        class="permission-group-{{ forloop.parentloop.counter }}"
+                                        name="permissions"
+                                        value="{{ permission.id }}"
+                                        {% if permission.id in assigned_permissions %}
+                                        checked
+                                        {% endif %}
+                                    >
+
+                                    {% endfor %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- ==========================================
+                 Footer
+            =========================================== -->
+
+            <div class="card-footer border-top border-slate-800 d-flex justify-content-end gap-3">
+
+                <a
+                    href="{% url 'accounts:role_list' %}"
+                    class="btn btn-outline-secondary">
+
+                    Cancel
+
+                </a>
+
+                <button
+                    class="btn btn-primary"
+                    type="submit">
+
+                    <i class="bi bi-save me-2"></i>
+
+                    Save Permission Configuration
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+document.querySelectorAll(".permission-group-toggle").forEach(group => {
+
+    const id = group.dataset.group;
+
+    const permissions = document.querySelectorAll(
+        ".permission-group-" + id
+    );
+
+    group.checked = [...permissions].every(permission => permission.checked);
+
+    group.addEventListener("change", function () {
+
+        permissions.forEach(permission => {
+
+            permission.checked = this.checked;
+
+        });
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

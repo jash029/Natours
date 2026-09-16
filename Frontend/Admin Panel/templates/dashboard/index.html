@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+
+{% block title %}Enterprise Dashboard | Natours Travel{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Executive Dashboard Overview</h3>
+        <p class="text-muted fs-7 mb-0">Real-time synchronization with Express REST APIs & MongoDB Travel Core.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-light border btn-sm fw-semibold" onclick="window.location.reload();">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh Data
+        </button>
+        <a href="#" class="btn btn-primary btn-sm fw-semibold">
+            <i class="bi bi-download me-1"></i> Export Analytics
+        </a>
+    </div>
+</div>
+
+<!-- Key Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card-enterprise p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted fs-8 fw-bold text-uppercase">Total Tours</span>
+                <div class="stat-icon-wrapper bg-primary-subtle text-primary">
+                    <i class="bi bi-map"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">{{ stats.total_tours|default:0 }}</h3>
+            <span class="fs-8 text-success"><i class="bi bi-arrow-up-right me-1"></i>Active Expeditions</span>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card-enterprise p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted fs-8 fw-bold text-uppercase">Total Customers</span>
+                <div class="stat-icon-wrapper bg-info-subtle text-info">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">{{ stats.total_customers|default:0 }}</h3>
+            <span class="fs-8 text-success"><i class="bi bi-arrow-up-right me-1"></i>Verified Profiles</span>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card-enterprise p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted fs-8 fw-bold text-uppercase">Active Bookings</span>
+                <div class="stat-icon-wrapper bg-success-subtle text-success">
+                    <i class="bi bi-ticket-perforated"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">{{ stats.active_bookings|default:0 }}</h3>
+            <span class="fs-8 text-success"><i class="bi bi-check-circle me-1"></i>Confirmed</span>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card-enterprise p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted fs-8 fw-bold text-uppercase">Pending Bookings</span>
+                <div class="stat-icon-wrapper bg-warning-subtle text-warning">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">{{ stats.pending_bookings|default:0 }}</h3>
+            <span class="fs-8 text-warning"><i class="bi bi-exclamation-circle me-1"></i>Awaiting Review</span>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card-enterprise p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted fs-8 fw-bold text-uppercase">Cancelled</span>
+                <div class="stat-icon-wrapper bg-danger-subtle text-danger">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">{{ stats.cancelled_bookings|default:0 }}</h3>
+            <span class="fs-8 text-muted">2.4% rate</span>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card-enterprise p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted fs-8 fw-bold text-uppercase">Gross Revenue</span>
+                <div class="stat-icon-wrapper bg-primary-subtle text-primary">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-0">${{ stats.total_revenue|default:0 }}</h3>
+            <span class="fs-8 text-success"><i class="bi bi-graph-up me-1"></i>+18.4% YTD</span>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4">
+    <!-- Revenue Trend Chart -->
+    <div class="col-lg-8">
+        <div class="card-enterprise p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold mb-0"><i class="bi bi-graph-up text-primary me-2"></i>Revenue Trend (USD)</h6>
+                <span class="badge bg-light text-body border">2026 Fiscal</span>
+            </div>
+            <div style="height: 280px;">
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Status Distribution -->
+    <div class="col-lg-4">
+        <div class="card-enterprise p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart text-primary me-2"></i>Booking Status Distribution</h6>
+            <div style="height: 240px;" class="d-flex align-items-center justify-content-center">
+                <canvas id="bookingStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Second Chart Row -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card-enterprise p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart-line text-primary me-2"></i>Top Selling Destinations</h6>
+            <div style="height: 220px;">
+                <canvas id="topDestinationsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card-enterprise p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-globe-americas text-primary me-2"></i>Customer Nationality Distribution</h6>
+            <div style="height: 220px;" class="d-flex align-items-center justify-content-center">
+                <canvas id="countryDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Bookings & Pending Verifications -->
+<div class="row g-3">
+    <!-- Recent Bookings Table -->
+    <div class="col-lg-8">
+        <div class="card-enterprise h-100">
+            <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold mb-0"><i class="bi bi-ticket-detailed me-2 text-primary"></i>Recent Bookings</h6>
+                <a href="{% url 'tours:list' %}" class="fs-8 text-primary fw-semibold text-decoration-none">View Catalog &rarr;</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-enterprise align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Customer</th>
+                            <th>Tour Title</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in recent_bookings %}
+                        <tr>
+                            <td><a href="#" class="fw-bold text-decoration-none">{{ b.booking_reference }}</a></td>
+                            <td>{{ b.customer_name }}</td>
+                            <td><span class="text-truncate d-inline-block" style="max-width: 200px;">{{ b.tour_title }}</span></td>
+                            <td class="fw-bold">${{ b.total_amount_usd }}</td>
+                            <td>
+                                {% if b.booking_status == 'Confirmed' %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Confirmed</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">{{ b.booking_status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted p-4">No recent bookings found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Verifications & Activity -->
+    <div class="col-lg-4">
+        <div class="card-enterprise mb-3">
+            <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold mb-0"><i class="bi bi-shield-exclamation text-danger me-2"></i>Pending Verifications</h6>
+                <a href="{% url 'consultants:list' %}" class="fs-8 text-danger fw-semibold text-decoration-none">Review All</a>
+            </div>
+            <div class="p-3">
+                {% for v in pending_verifications %}
+                <div class="p-2 border rounded mb-2 bg-body-tertiary d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fw-semibold fs-7">{{ v.customer_name }}</div>
+                        <div class="text-muted fs-8">{{ v.document_type }} ({{ v.document_number }})</div>
+                    </div>
+                    <a href="{% url 'consultants:list' %}" class="btn btn-sm btn-outline-primary fs-8">Verify</a>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted fs-8 py-3"><i class="bi bi-check-circle fs-4 text-success d-block mb-1"></i>All document verifications caught up!</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card-enterprise p-3">
+            <h6 class="fw-bold mb-3 fs-7"><i class="bi bi-activity text-primary me-2"></i>Recent Staff Audit Logs</h6>
+            <div class="fs-8">
+                {% for a in recent_activities %}
+                <div class="mb-2 pb-2 border-bottom">
+                    <div class="fw-semibold text-body">{{ a.user }} &bull; <span class="text-muted">{{ a.action }}</span></div>
+                    <div class="text-primary">{{ a.target }} <span class="text-muted ms-2">({{ a.time }})</span></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chartsData = {{ charts|json_script:"charts-data" }};
+        const raw = JSON.parse(document.getElementById('charts-data').textContent);
+
+        // Revenue Trend Line Chart
+        if (raw.revenue_trend) {
+            new Chart(document.getElementById('revenueTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: raw.revenue_trend.labels,
+                    datasets: [{
+                        label: 'Gross Revenue ($)',
+                        data: raw.revenue_trend.data,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // Booking Status Distribution Doughnut Chart
+        if (raw.booking_status_distribution) {
+            new Chart(document.getElementById('bookingStatusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(raw.booking_status_distribution),
+                    datasets: [{
+                        data: Object.values(raw.booking_status_distribution),
+                        backgroundColor: ['#16a34a', '#eab308', '#dc2626', '#2563eb']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // Top Destinations Horizontal Bar Chart
+        if (raw.top_destinations) {
+            new Chart(document.getElementById('topDestinationsChart'), {
+                type: 'bar',
+                data: {
+                    labels: raw.top_destinations.map(d => d.destination),
+                    datasets: [{
+                        label: 'Bookings Count',
+                        data: raw.top_destinations.map(d => d.bookings),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Country Distribution Pie Chart
+        if (raw.country_distribution) {
+            new Chart(document.getElementById('countryDistributionChart'), {
+                type: 'pie',
+                data: {
+                    labels: raw.country_distribution.map(c => c.country),
+                    datasets: [{
+                        data: raw.country_distribution.map(c => c.percentage),
+                        backgroundColor: ['#1d4ed8', '#0284c7', '#0d9488', '#16a34a', '#9333ea']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Accounts & RBAC Access | Natours Travel{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Staff Management & Role Access</h3>
+        <p class="text-muted fs-7 mb-0">Super Admin Controls: Manage staff members, assign system permissions, and monitor activity.</p>
+    </div>
+    <a href="{% url 'accounts:staff_create' %}" class="btn btn-primary fw-semibold d-flex align-items-center gap-2">
+        <i class="bi bi-person-plus-fill"></i> Add New Staff Member
+    </a>
+</div>
+
+<!-- Search & Filter -->
+<div class="card-enterprise p-3 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-5">
+            {{ search_form.q }}
+        </div>
+        <div class="col-md-3">
+            {{ search_form.role }}
+        </div>
+        <div class="col-md-3">
+            {{ search_form.department }}
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i></button>
+        </div>
+    </form>
+</div>
+
+<div class="card-enterprise">
+    <div class="table-responsive">
+        <table class="table table-enterprise align-middle">
+            <thead>
+                <tr>
+                    <th>Staff Member</th>
+                    <th>Email Address</th>
+                    <th>Role & Permissions</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Employee ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in page_obj %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="{{ profile.profile_image|default:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }}" class="rounded-circle" width="38" height="38" alt="Avatar">
+                            <div>
+                                <div class="fw-bold text-body fs-7">{{ profile.user.get_full_name|default:profile.user.username }}</div>
+                                <div class="text-muted fs-8">@{{ profile.user.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="fs-7 text-body">{{ profile.user.email }}</span></td>
+                    <td>
+                        {% if profile.role == 'SUPER_ADMIN' %}
+                            <span class="badge role-super-admin border"><i class="bi bi-shield-lock-fill me-1"></i> Super Admin</span>
+                        {% elif profile.role == 'OPERATIONS_ADMIN' %}
+                            <span class="badge role-operations-admin border"><i class="bi bi-gear-fill me-1"></i> Operations Admin</span>
+                        {% else %}
+                            <span class="badge role-support-admin border"><i class="bi bi-headset me-1"></i> Support Admin</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="fs-7 text-body">{{ profile.get_department_display }}</span></td>
+                    <td>
+                        {% if profile.is_account_locked %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Locked</span>
+                        {% else %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="fs-7 text-muted">{{ profile.employee_id }}</span></td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'accounts:staff_detail' profile.pk %}" class="btn btn-sm btn-outline-secondary" title="View Detail">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'accounts:staff_edit' profile.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if profile.is_account_locked %}
+                            <form method="post" action="{% url 'accounts:staff_unlock' profile.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Unlock Account">
+                                    <i class="bi bi-unlock"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'accounts:staff_delete' profile.pk %}" class="d-inline" onsubmit="return confirm('Deactivate {{ profile.user.username }}?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate">
+                                    <i class="bi bi-person-x"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-people fs-1 d-block mb-2"></i>
+                        No staff members found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="d-flex justify-content-between align-items-center p-3 border-top">
+        <small class="text-muted">
+            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} staff members
+        </small>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create Staff Modal -->
+<div class="modal fade" id="createStaffModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">Provision New Staff Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'accounts:staff_create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold" for="id_first_name">First Name</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold" for="id_last_name">Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold" for="id_username">Username</label>
+                            {{ form.username }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold" for="id_email">Work Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold" for="id_role">Role & Access Level</label>
+                            {{ form.role }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold" for="id_department">Department</label>
+                            {{ form.department }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold" for="id_employee_id">Employee ID <small class="text-muted fw-normal">(optional)</small></label>
+                            {{ form.employee_id }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold" for="id_password">Initial Password</label>
+                            {{ form.password }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-check-lg me-1"></i> Create Staff Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tour.name }} | Natours Travel{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Back Link -->
+    <div class="mb-3">
+        <a href="{% url 'tours:list' %}" class="text-slate-400 text-decoration-none fs-7"><i class="bi bi-arrow-left me-1"></i> Back to Tour Catalog</a>
+    </div>
+
+    <!-- Hero Header Card -->
+    <div class="card bg-slate-900 border-slate-800 text-white rounded-3 shadow-lg overflow-hidden mb-4">
+        <div class="row g-0">
+            <div class="col-lg-5 position-relative">
+                {% if tour.imageCover and tour.imageCover.secureUrl %}
+                    <img src="{{ tour.imageCover.secureUrl }}" class="w-100 h-100" style="object-fit: cover; min-height: 280px;" alt="{{ tour.name }}">
+                {% else %}
+                    <div class="w-100 h-100 bg-slate-800 d-flex align-items-center justify-content-center" style="min-height: 280px;">
+                        <i class="bi bi-image text-slate-600 fs-1"></i>
+                    </div>
+                {% endif %}
+                <span class="position-absolute top-0 start-0 m-3 badge bg-slate-950/80 backdrop-blur text-amber-400 border border-amber-500/30">
+                    <i class="bi bi-tag-fill me-1"></i>{{ tour.theme }}
+                </span>
+            </div>
+            <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-between">
+                <div>
+                    <d.0 class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5"><i class="bi bi-circle-fill fs-9 me-1"></i>{{ tour.status|title }}</span>
+                        <div class="d-flex gap-2">
+                            {% if tour.featured %}<span class="badge bg-amber-500 text-dark font-monospace fw-bold"><i class="bi bi-star-fill me-1"></i>FEATURED</span>{% endif %}
+                            {% if tour.trending %}<span class="badge bg-rose-500 text-white font-monospace fw-bold"><i class="bi bi-fire me-1"></i>TRENDING</span>{% endif %}
+                        </div>
+                    </d.0
+
+                    <h2 class="fw-bold text-white mb-2">{{ tour.name }}</h2>
+                    <p class="text-slate-400 fs-7 mb-3">
+                        <i class="bi bi-geo-alt-fill text-amber-400 me-1"></i>
+                        {% if tour.destinations %}
+                            {{ tour.destinations.0.country }}
+                        {% elif tour.startLocation %}
+                            {{ tour.startLocation }}
+                        {% endif %}
+                    </p>
+                    <p class="text-slate-300 fs-6">{{ tour.summary }}</p>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-3 border-top border-slate-800 mt-4">
+                    <div class="d-flex gap-4">
+                        <div>
+                            <span class="text-slate-400 fs-8 d-block">Duration</span>
+                            <strong class="fs-6 text-white"><i class="bi bi-clock me-1 text-amber-400"></i>{{ tour.duration.days }} Days / {{ tour.duration.nights }} Nights</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 fs-8 d-block">Starting Price</span>
+                            <strong class="fs-5 text-amber-400">${{ tour.startingPrice }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'tours:edit' tour.id %}" class="btn btn-amber fw-bold text-dark px-3 py-2"><i class="bi bi-pencil me-1"></i> Edit Tour</a>
+                        <form method="post" action="{% url 'tours:delete' tour.id %}" onsubmit="return confirm('Delete this expedition?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger px-3 py-2"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row g-4">
+        <!-- Left Column: Pricing & Itinerary -->
+        <div class="col-lg-8">
+            <!-- Financial Breakdown Card -->
+            <div class="card bg-slate-900 border-slate-800 text-white rounded-3 shadow-sm mb-4">
+                <div class="card-header bg-slate-800/50 border-slate-800 py-3">
+                    <h5 class="fw-bold mb-0 text-amber-400"><i class="bi bi-cash-stack me-2"></i>Pricing & Booking Deposit Breakdown</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="p-3 bg-slate-800/60 rounded-3 border border-slate-700">
+                                <span class="text-slate-400 fs-8 d-block">Starting Price</span>
+                                <span class="fs-5 fw-bold text-white">${{ tour.startingPrice }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-slate-800/60 rounded-3 border border-slate-700">
+                                <span class="text-slate-400 fs-8 d-block">Discount</span>
+                                <span class="fs-5 fw-bold text-rose-400">-${{ tour.discount|default:0 }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-slate-800/60 rounded-3 border border-slate-700">
+                                <span class="text-slate-400 fs-8 d-block">Effective Price</span>
+                                <span class="fs-5 fw-bold text-amber-400">${{ tour.effectivePrice }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 bg-slate-800/60 rounded-3 border border-slate-700">
+                                <span class="text-slate-400 fs-8 d-block">Advance Token Deposit</span>
+                                <span class="fs-5 fw-bold text-emerald-400">${{ tour.advanceBookingAmount|default:2000 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description & Itinerary -->
+            <div class="card bg-slate-900 border-slate-800 text-white rounded-3 shadow-sm mb-4">
+                <div class="card-header bg-slate-800/50 border-slate-800 py-3">
+                    <h5 class="fw-bold mb-0 text-amber-400"><i class="bi bi-journal-text me-2"></i>Expedition Description</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-slate-300 lh-relaxed mb-4">{{ tour.description }}</p>
+
+                    <h6 class="fw-bold text-white mb-3"><i class="bi bi-calendar-range me-2 text-amber-400"></i>Day-by-Day Itinerary Timeline</h6>
+                    <div class="space-y-3">
+                        {% for item in tour.itinerary %}
+                        <div class="p-3 bg-slate-800/40 rounded-3 border border-slate-700/80 mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="badge bg-amber-500/10 text-amber-400 border border-amber-500/20 font-monospace">Day {{ item.day }}</span>
+                                <span class="text-slate-400 fs-8"><i class="bi bi-pin-map me-1"></i>{{ item.title }}</span>
+                            </div>
+                            <p class="text-slate-300 fs-7 mb-0 mt-2">{{ item.description }}</p>
+                        </div>
+                        {% empty %}
+                        <p class="text-slate-500 italic fs-7 mb-0">No day-by-day itinerary entries created yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Images -->
+            {% if tour.images %}
+            <div class="card bg-slate-900 border-slate-800 text-white rounded-3 shadow-sm mb-4">
+                <div class="card-header bg-slate-800/50 border-slate-800 py-3">
+                    <h5 class="fw-bold mb-0 text-amber-400"><i class="bi bi-images me-2"></i>Gallery Images ({{ tour.images|length }}/5)</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-2">
+                        {% for img in tour.images %}
+                        <div class="col-md-4">
+                            <img src="{{ img.secureUrl }}" class="w-100 rounded-2 border border-slate-700" style="height: 140px; object-fit: cover;" alt="{{ img.alt|default:tour.name }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Packages & Destinations & SEO -->
+        <div class="col-lg-4">
+            <!-- Destinations -->
+            <div class="card bg-slate-900 border-slate-800 text-white rounded-3 shadow-sm mb-4">
+                <div class="card-header bg-slate-800/50 border-slate-800 py-3">
+                    <h5 class="fw-bold mb-0 text-amber-400"><i class="bi bi-geo-alt me-2"></i>Destinations</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% for dest in tour.destinations %}
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-pin-map-fill text-amber-400"></i>
+                        <span class="fs-7 text-white">{{ dest.city }}{% if dest.state %}, {{ dest.state }}{% endif %}, {{ dest.country }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-slate-500 fs-7 mb-0">No destinations specified.</p>
+                    {% endfor %}
+                    {% if tour.startLocation %}
+                    <div class="mt-3 pt-3 border-top border-slate-700">
+                        <span class="text-slate-400 fs-8 d-block">Start Location</span>
+                        <span class="fs-7 text-white">{{ tour.startLocation }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tier Packages -->
+            <div class="card bg-slate-900 border-slate-800 text-white rounded-3 shadow-sm mb-4">
+                <div class="card-header bg-slate-800/50 border-slate-800 py-3">
+                    <h5 class="fw-bold mb-0 text-amber-400"><i class="bi bi-box-seam me-2"></i>Tier Packages</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% for pkg in tour.packages %}
+                    <div class="p-3 bg-slate-800/60 rounded-3 border border-slate-700 mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="fw-bold text-white mb-0">{{ pkg.name }} Tier</h6>
+                            <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-monospace">${{ pkg.price }}</span>
+                        </div>
+                        <p class="text-slate-400 fs-8 mb-1"><i class="bi bi-truck me-1"></i>{{ pkg.transportation }}</p>
+                        <p class="text-slate-400 fs-8 mb-0"><i class="bi bi-person-check me-1"></i>{{ pkg.assistance }}</p>
+                        {% if pkg.hotels %}
+                        <div class="mt-2 pt-2 border-top border-slate-700">
+                            {% for hotel in pkg.hotels %}
+                            <span class="badge bg-slate-700 text-slate-300 me-1">{{ hotel.name }} ★{{ hotel.rating }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-slate-500 fs-7 italic mb-0">Standard package configuration applies.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- SEO Metadata -->
+            {% if tour.seo %}
+            <div class="card bg-slate-900 border-slate-800 text-white rounded-3 shadow-sm mb-4">
+                <div class="card-header bg-slate-800/50 border-slate-800 py-3">
+                    <h5 class="fw-bold mb-0 text-amber-400"><i class="bi bi-search me-2"></i>SEO Metadata</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if tour.seo.metaTitle %}
+                    <div class="mb-2">
+                        <span class="text-slate-400 fs-8 d-block">Meta Title</span>
+                        <span class="fs-7 text-white">{{ tour.seo.metaTitle }}</span>
+                    </div>
+                    {% endif %}
+                    {% if tour.seo.metaDescription %}
+                    <div class="mb-2">
+                        <span class="text-slate-400 fs-8 d-block">Meta Description</span>
+                        <span class="fs-7 text-white">{{ tour.seo.metaDescription }}</span>
+                    </div>
+                    {% endif %}
+                    {% if tour.seo.keywords %}
+                    <div>
+                        <span class="text-slate-400 fs-8 d-block">Keywords</span>
+                        {% for kw in tour.seo.keywords %}
+                        <span class="badge bg-slate-700 text-slate-300 me-1">{{ kw }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Ratings -->
+            <div class="card bg-slate-900 border-slate-800 text-white rounded-3 shadow-sm">
+                <div class="card-header bg-slate-800/50 border-slate-800 py-3">
+                    <h5 class="fw-bold mb-0 text-amber-400"><i class="bi bi-star me-2"></i>Ratings</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="display-5 fw-bold text-amber-400">{{ tour.ratingsAverage|default:"4.5" }}</span>
+                        <div>
+                            <div class="fs-7 text-white">Average Rating</div>
+                            <div class="text-slate-400 fs-8">{{ tour.ratingsQuantity|default:0 }} reviews</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

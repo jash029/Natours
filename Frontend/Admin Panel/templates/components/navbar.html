@@ -1,0 +1,44 @@
+<header class="top-navbar">
+    <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-light btn-sm border d-lg-none" id="sidebar-toggle" type="button">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <div class="input-group input-group-sm" style="width: 280px;">
+            <span class="input-group-text bg-body-tertiary border-end-0">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control bg-body-tertiary border-start-0" placeholder="Global search tours, bookings, customers..." id="global-search-input">
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+        <!-- Role Badge -->
+        {% if request.staff_user %}
+            {% if request.staff_user.role == 'Super Admin' %}
+                <span class="badge role-super-admin border border-danger-subtle"><i class="bi bi-shield-lock-fill me-1"></i> Super Admin</span>
+            {% elif request.staff_user.role == 'Operations Admin' %}
+                <span class="badge role-operations-admin border border-primary-subtle"><i class="bi bi-gear-fill me-1"></i> Operations Admin</span>
+            {% else %}
+                <span class="badge role-support-admin border border-info-subtle"><i class="bi bi-headset me-1"></i> Support Admin</span>
+            {% endif %}
+        {% endif %}
+
+        <!-- Theme Switcher Button -->
+       
+        <!-- User Dropdown Menu -->
+        <div class="dropdown">
+            <a class="d-flex align-items-center gap-2 text-decoration-none dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <img src="{{ request.staff_user.avatar|default:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }}" class="rounded-circle border" width="34" height="34" alt="User">
+                <span class="d-none d-md-inline fw-semibold text-body fs-7">{{ request.staff_user.name|default:'Staff User' }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 fs-7">
+                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                {% if request.staff_user.role == 'Super Admin' %}
+                    <li><a class="dropdown-item" href="{% url 'accounts:staff_list' %}"><i class="bi bi-person-gear me-2"></i>Manage Staff</a></li>
+                {% endif %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</header>

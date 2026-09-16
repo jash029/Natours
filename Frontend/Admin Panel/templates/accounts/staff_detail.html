@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Profile Detail | Natours Travel{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'accounts:staff_list' %}" class="btn btn-sm btn-outline-secondary mb-2">
+        <i class="bi bi-arrow-left me-1"></i> Back to Staff List
+    </a>
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h3 class="fw-bold mb-1">{{ profile.user.get_full_name|default:profile.user.username }}</h3>
+            <p class="text-muted fs-7 mb-0">Employee ID: {{ profile.employee_id }} | Registered @{{ profile.user.username }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'accounts:staff_edit' profile.pk %}" class="btn btn-primary fw-semibold">
+                <i class="bi bi-pencil me-1"></i> Edit Staff Member
+            </a>
+            {% if profile.is_account_locked %}
+            <form method="post" action="{% url 'accounts:staff_unlock' profile.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning fw-semibold">
+                    <i class="bi bi-unlock me-1"></i> Unlock Account
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card-enterprise p-4 text-center">
+            <img src="{{ profile.profile_image|default:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200' }}" class="rounded-circle border border-3 border-primary mb-3" width="100" height="100" alt="Avatar">
+            <h5 class="fw-bold mb-1">{{ profile.user.get_full_name|default:profile.user.username }}</h5>
+            <div class="text-muted fs-7 mb-2">{{ profile.user.email }}</div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-3">{{ profile.get_department_display }}</span>
+            
+            <div class="border-top pt-3 fs-8 text-muted text-start">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Role:</span>
+                    <strong class="text-body">{{ profile.get_role_display }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Phone:</span>
+                    <strong class="text-body">{{ profile.phone|default:'—' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Account Status:</span>
+                    {% if profile.is_account_locked %}
+                        <span class="badge bg-danger">Locked</span>
+                    {% elif profile.is_deleted %}
+                        <span class="badge bg-secondary">Deactivated</span>
+                    {% else %}
+                        <span class="badge bg-success">Active</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Online Status:</span>
+                    {% if profile.is_online %}
+                        <span class="badge bg-success">Online</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Offline</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Created Date:</span>
+                    <strong class="text-body">{{ profile.created_at|date:"Y-m-d H:i" }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card-enterprise p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>Account Information</h5>
+            <div class="row g-3 fs-7">
+                <div class="col-md-6">
+                    <span class="text-muted d-block">First Name</span>
+                    <strong class="text-body">{{ profile.user.first_name|default:'—' }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted d-block">Last Name</span>
+                    <strong class="text-body">{{ profile.user.last_name|default:'—' }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted d-block">Username</span>
+                    <strong class="text-body">{{ profile.user.username }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted d-block">Email Address</span>
+                    <strong class="text-body">{{ profile.user.email }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted d-block">Last Login</span>
+                    <strong class="text-body">{{ profile.last_login_at|date:"Y-m-d H:i:s"|default:'Never' }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted d-block">Failed Login Attempts</span>
+                    <strong class="text-body">{{ profile.failed_login_attempts }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

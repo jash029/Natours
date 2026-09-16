@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile & Account Settings | Natours Travel{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h3 class="fw-bold mb-1">Staff Profile & Credentials</h3>
+                <p class="text-muted fs-7 mb-0">Manage your staff account information and security credentials.</p>
+            </div>
+            <span class="badge role-{{ profile.role|lower|cut:'_'|default:'staff' }} border">
+                {{ profile.get_role_display }}
+            </span>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-enterprise p-4 text-center">
+            <img src="{{ profile.profile_image|default:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200' }}" class="rounded-circle border border-3 border-primary mb-3" width="100" height="100" alt="Avatar">
+            <h5 class="fw-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h5>
+            <div class="text-muted fs-7 mb-2">{{ request.user.email }}</div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-3">{{ profile.get_department_display }}</span>
+            <div class="border-top pt-3 fs-8 text-muted text-start">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Employee ID:</span>
+                    <strong class="text-body">{{ profile.employee_id }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>System Role:</span>
+                    <strong class="text-body">{{ profile.get_role_display }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Phone:</span>
+                    <strong class="text-body">{{ profile.phone|default:'—' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Status:</span>
+                    {% if profile.is_account_locked %}
+                        <span class="badge bg-danger">Locked</span>
+                    {% else %}
+                        <span class="badge bg-success">Active</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card-enterprise p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Personal Information</h5>
+            <form method="post" action="{% url 'accounts:profile' %}">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fs-7 fw-semibold" for="id_first_name">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fs-7 fw-semibold" for="id_last_name">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fs-7 fw-semibold" for="id_email">Email (Read Only)</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fs-7 fw-semibold" for="id_phone">Phone Number</label>
+                        {{ form.phone }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fs-7 fw-semibold" for="id_profile_image">Profile Image URL</label>
+                        {{ form.profile_image }}
+                    </div>
+                    <div class="col-12 mt-4 text-end">
+                        <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-check-lg me-1"></i> Save Profile Details</button>
+                    </div>
+                </div>
+                {% if form.errors %}
+                <div class="alert alert-danger mt-3 fs-7">
+                    {% for field in form %}{% for error in field.errors %}<div>{{ field.label }}: {{ error }}</div>{% endfor %}{% endfor %}
+                    {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                </div>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="card-enterprise p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2 text-primary"></i>Change Password</h5>
+            <form method="post" action="{% url 'accounts:change_password' %}">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fs-7 fw-semibold" for="id_current_password">Current Password</label>
+                        {{ pwd_form.current_password }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fs-7 fw-semibold" for="id_new_password">New Password</label>
+                        {{ pwd_form.new_password }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fs-7 fw-semibold" for="id_confirm_password">Confirm Password</label>
+                        {{ pwd_form.confirm_password }}
+                    </div>
+                    <div class="col-12 mt-4 text-end">
+                        <button type="submit" class="btn btn-outline-primary fw-semibold"><i class="bi bi-key me-1"></i> Update Password</button>
+                    </div>
+                </div>
+                {% if pwd_form.errors %}
+                <div class="alert alert-danger mt-3 fs-7">
+                    {% for field in pwd_form %}{% for error in field.errors %}<div>{{ field.label }}: {{ error }}</div>{% endfor %}{% endfor %}
+                    {% for error in pwd_form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

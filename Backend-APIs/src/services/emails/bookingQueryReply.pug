@@ -1,0 +1,43 @@
+extends baseEmail
+
+block content
+    h2 Hello #{firstName},
+
+    p
+        | Our support team has responded to your support request.
+        | Please find the latest update below.
+
+    table(role="presentation" border="0" cellpadding="6" cellspacing="0" width="100%" style="border:1px solid #e5e7eb;border-radius:6px;margin:20px 0;")
+        tbody
+            tr
+                td(style="font-weight:bold;width:140px;") Category
+                td= assistance.category
+
+            tr
+                td(style="font-weight:bold;") Subject
+                td= assistance.subject
+
+            tr
+                td(style="font-weight:bold;") Current Status
+                td= assistance.status
+
+    h3(style="margin-top:30px;") Support Team Response
+
+    table(role="presentation" border="0" cellpadding="16" cellspacing="0" width="100%" style="background:#f8fafc;border-left:4px solid #2563eb;border-radius:6px;margin:15px 0 25px;")
+        tbody
+            tr
+                td
+                    p(style="margin:0;white-space:pre-line;")
+                        = replyMessage
+
+    p
+        | If you have additional questions or require further assistance,
+        | simply reply to this email or submit another message through your booking support page.
+
+    p
+        | We are committed to resolving your request as quickly as possible.
+
+    p
+        | Best regards,
+        br
+        strong Natours Support Team

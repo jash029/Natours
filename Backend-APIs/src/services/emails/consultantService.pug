@@ -1,0 +1,75 @@
+extends baseEmail
+
+block content
+  h1(style='margin-bottom:24px;color:#111827;font-size:28px;font-weight:700')
+    Natours Consultation Update
+
+  p Hi #{firstName || 'Traveler'},
+
+  p
+    | We wanted to let you know that the status of your consultation request has been updated.
+
+  table(role='presentation', border='0', cellpadding='0', cellspacing='0', width='100%', style='margin:24px 0;border-collapse:collapse')
+    tbody
+      tr
+        td(style='padding:12px 16px;background:#f3f4f6;font-weight:bold;width:180px')
+          | Status
+        td(style='padding:12px 16px;background:#fafafa')
+          strong #{status}
+
+      if consultationMode
+        tr
+          td(style='padding:12px 16px;background:#f3f4f6;font-weight:bold')
+            | Consultation Mode
+          td(style='padding:12px 16px;background:#fafafa')
+            | #{consultationMode}
+
+      if preferredDate
+        tr
+          td(style='padding:12px 16px;background:#f3f4f6;font-weight:bold')
+            | Preferred Date
+          td(style='padding:12px 16px;background:#fafafa')
+            | #{preferredDate}
+
+      if preferredTime
+        tr
+          td(style='padding:12px 16px;background:#f3f4f6;font-weight:bold')
+            | Preferred Time
+          td(style='padding:12px 16px;background:#fafafa')
+            | #{preferredTime}
+
+  if notes
+    h3(style='margin-top:30px')
+      | Message from our Team
+
+    p(style='padding:16px;background:#f9fafb;border-left:4px solid #2563eb;white-space:pre-line')
+      | #{notes}
+
+  if status === 'completed'
+    p
+      | Your consultation has been successfully completed.
+      | Thank you for choosing Natours. We hope to plan your next adventure soon!
+
+  if status === 'pending'
+    p
+      | Your request has been received and is currently under review.
+      | One of our travel experts will contact you shortly.
+
+  if status === 'hold'
+    p
+      | Your consultation has temporarily been placed on hold.
+      | We'll update you as soon as additional information is available.
+
+  if status === 'rejected'
+    p
+      | Unfortunately, we are unable to proceed with your consultation request at this time.
+      | Please contact our support team if you need further clarification.
+
+  p(style='margin-top:32px')
+    | If you have any questions, simply reply to this email and our travel specialists will be happy to assist you.
+
+  p(style='margin-top:32px')
+    strong
+      | Thank you,
+    br
+    | Team Natours

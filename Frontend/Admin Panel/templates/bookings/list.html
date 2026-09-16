@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Document Verification & Bookings | Natours Travel Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="bi bi-file-earmark-check me-2 text-primary"></i>Document Verification & Bookings</h3>
+        <p class="text-muted fs-7 mb-0">Search booked tours, audit traveler documents, process offline payments, and update travel journey status.</p>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card-enterprise p-3 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label fs-8 text-muted fw-semibold">Search Booking / Traveler</label>
+            <input type="text" name="search" class="form-control" placeholder="Search booking no, traveler name, phone..." value="{{ search }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fs-8 text-muted fw-semibold">Booking Status</label>
+            <select name="booking_status" class="form-select">
+                <option value="">All Booking Statuses</option>
+                <option value="pending" {% if booking_status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="confirmed" {% if booking_status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                <option value="completed" {% if booking_status == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="expired" {% if booking_status == 'expired' %}selected{% endif %}>Expired</option>
+                <option value="cancelled" {% if booking_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                <option value="failed" {% if booking_status == 'failed' %}selected{% endif %}>Failed</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fs-8 text-muted fw-semibold">Payment Status</label>
+            <select name="payment_status" class="form-select">
+                <option value="">All Payments</option>
+                <option value="advancePaid" {% if payment_status == 'advancePaid' %}selected{% endif %}>Advance Paid</option>
+                <option value="fullPaid" {% if payment_status == 'fullPaid' %}selected{% endif %}>Full Paid</option>
+                <option value="pending" {% if payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="refunded" {% if payment_status == 'refunded' %}selected{% endif %}>Refunded</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fs-8 text-muted fw-semibold">Doc Verification</label>
+            <select name="verification_status" class="form-select">
+                <option value="">All Doc Statuses</option>
+                <option value="pending" {% if verification_status == 'pending' %}selected{% endif %}>Pending Audit</option>
+                <option value="verified" {% if verification_status == 'verified' %}selected{% endif %}>Verified & Approved</option>
+                <option value="rejected" {% if verification_status == 'rejected' %}selected{% endif %}>Action Required / Rejected</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100 fw-semibold"><i class="bi bi-search me-1"></i> Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card-enterprise">
+    <div class="table-responsive">
+        <table class="table table-enterprise align-middle">
+            <thead>
+                <tr>
+                    <th>Booking No.</th>
+                    <th>Customer / User</th>
+                    <th>Tour Expedition</th>
+                    <th>Travel Date</th>
+                    <th>Doc Verification</th>
+                    <th>Payment</th>
+                    <th>Booking Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                <tr>
+                    <td>
+                        <span class="font-monospace text-primary fw-bold fs-7">{{ b.bookingNumber }}</span>
+                        <div class="fs-8 text-muted">{{ b.packageName }} Package</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-body fs-7">{{ b.user.name|default:"Client" }}</div>
+                        <div class="fs-8 text-muted">{{ b.user.email }}</div>
+                    </td>
+                    <td>
+                        <div class="fs-7 fw-semibold text-body text-truncate" style="max-width: 180px;">
+                            {{ b.tour.name|default:"Tour Expedition" }}
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary fs-8">{{ b.tour.theme|default:"Cities" }}</span>
+                    </td>
+                    <td>
+                        <span class="fs-7 text-body">{{ b.travelDate|slice:":10" }}</span>
+                    </td>
+                    <td>
+                        {% if b.documentVerificationStatus == 'verified' %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-shield-check me-1"></i> Verified</span>
+                        {% elif b.documentVerificationStatus == 'rejected' %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-triangle me-1"></i> Rejected</span>
+                        {% else %}
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-clock-history me-1"></i> Pending Audit</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if b.payment.status == 'fullPaid' %}
+                            <span class="badge bg-success text-white"><i class="bi bi-check-all me-1"></i> Full Paid</span>
+                        {% elif b.payment.status == 'advancePaid' %}
+                            <span class="badge bg-info-subtle text-info border border-info-subtle">Advance Paid</span>
+                        {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary border">{{ b.payment.status|default:"Pending" }}</span>
+                        {% endif %}
+                        <div class="fs-8 text-muted mt-1">Paid: ${{ b.amountPaid }} / Total: ${{ b.totalAmount }}</div>
+                    </td>
+                    <td>
+                        {% if b.bookingStatus == 'confirmed' %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Confirmed</span>
+                        {% elif b.bookingStatus == 'completed' %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">Completed</span>
+                        {% elif b.bookingStatus == 'expired' %}
+                            <span class="badge bg-secondary-subtle text-secondary border">Expired</span>
+                        {% elif b.bookingStatus == 'cancelled' %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        
+                       <a href="{% url 'bookings:detail' b.id %}" class="btn btn-sm btn-outline-primary">
+    <i class="bi bi-eye me-1"></i> Audit & Details
+</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                        <i class="bi bi-folder-x fs-1 d-block mb-2 text-secondary"></i>
+                        No booked tours found matching your search and filter settings.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

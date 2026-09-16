@@ -1,0 +1,65 @@
+include baseEmail.pug
+
+block content
+  h1 Hi #{firstName},
+
+  p
+    | Thank you for choosing
+    strong  Natours
+    |  for your travel consultation.
+
+  p
+    | We're pleased to confirm your consultation request. Below are your appointment details.
+
+  table(role="presentation" border="0" cellpadding="8" cellspacing="0" width="100%")
+    tr
+      td
+        strong Date
+      td #{date}
+
+    tr
+      td
+        strong Time
+      td #{time}
+
+    tr
+      td
+        strong Meeting Mode
+      td #{meetingMode}
+
+  if meetingMode === "online"
+    h2 Online Consultation
+
+    p
+      |We have Taken Note Of Your Request , We will Give You scheduled Time Soon.
+
+    
+
+   
+
+    
+  if meetingMode === "offline"
+    h2 Visit Our Office
+
+    p
+      | Your consultation will take place at one of our Natours offices.
+
+    p
+      | Before visiting, please call the number below. Our support team will guide you to the nearest Natours office based on your location.
+
+    p
+      strong Contact Number:
+      |  +91 98765 43210
+
+  hr
+
+  p
+    | If you have any questions, simply reply to this email.
+
+  p
+    | We look forward to helping you plan your next unforgettable journey.
+
+  p
+    strong —
+    br
+    strong The Natours Team

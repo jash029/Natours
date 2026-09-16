@@ -1,0 +1,55 @@
+extends baseEmail
+
+block content
+
+    h2 Congratulations #{firstName}! 🎉
+
+    p
+        | Great news! All submitted travel documents have been successfully verified by our verification team.
+
+    p
+        | Your booking has now progressed to the next stage of the confirmation process.
+
+    table(role="presentation" width="100%" cellpadding="8" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;margin:25px 0;")
+        tbody
+            tr
+                td(style="font-weight:bold;width:180px;") Booking Number
+                td= book.bookingNumber
+
+            tr
+                td(style="font-weight:bold;") Tour
+                td= book?.tour?.name || book?.tour?.slug
+
+            tr
+                td(style="font-weight:bold;") Verification Status
+                td Verified
+
+    h3 Next Steps
+
+    p
+        | To complete your booking, please contact our booking team using the number below for payment confirmation and ticket processing.
+
+    table(role="presentation" width="100%" cellpadding="14" cellspacing="0" style="background:#EFF6FF;border-left:4px solid #2563EB;border-radius:6px;margin:20px 0;")
+        tbody
+            tr
+                td
+                    strong Booking Support
+                    br
+                    | #{contactPhone}
+
+    p
+        | Once your payment has been confirmed, our team will begin preparing your travel package, including:
+
+    ul
+        li Flight or transport tickets
+        li Hotel confirmations
+        li Travel itinerary
+        li Travel vouchers (if applicable)
+
+    p
+        | Thank you for choosing
+        strong  Natours
+        | . We look forward to helping you create an unforgettable travel experience.
+
+    p
+        strong Natours Booking Team

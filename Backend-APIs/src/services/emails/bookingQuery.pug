@@ -1,0 +1,43 @@
+extends baseEmail
+
+block content
+    h2 Hello #{firstName},
+
+    p
+        | Thank you for contacting the Natours Support Team.
+        | Your support request has been successfully received.
+
+    p
+        | Below are the details of your request:
+
+    table(role="presentation" border="0" cellpadding="6" cellspacing="0" width="100%" style="border:1px solid #e5e7eb;border-radius:6px;margin:20px 0;")
+        tbody
+            tr
+                td(style="font-weight:bold;width:140px;") Category
+                td= assistance.category
+
+            tr
+                td(style="font-weight:bold;") Subject
+                td= assistance.subject
+
+            tr
+                td(style="font-weight:bold;") Status
+                td= assistance.status
+
+            tr
+                td(style="font-weight:bold;vertical-align:top;") Message
+                td= assistance.message
+
+    p
+        | Our support team is currently reviewing your request.
+        | We'll notify you by email as soon as there is an update.
+
+    p
+        | Thank you for your patience and for choosing
+        strong  Natours
+        | .
+
+    p
+        | Best regards,
+        br
+        strong Natours Support Team

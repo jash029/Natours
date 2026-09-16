@@ -1,0 +1,936 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Natours Travel{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Header with clean navigation -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+        <div>
+            <a href="{% url 'tours:list' %}" class="text-slate-400 text-decoration-none fs-7"><i class="bi bi-arrow-left me-1"></i> Back to Tour Catalog</a>
+            <h1 class="h3 fw-bold text-white mb-0 mt-1">{{ title }}</h1>
+        </div>
+        <div>
+            <a href="{% url 'tours:list' %}" class="btn btn-outline-secondary px-3"><i class="bi bi-x-lg me-1"></i> Cancel</a>
+        </div>
+    </div>
+
+    
+
+    {% if basic_form.errors or media_form.errors or content_form.errors or package_form.errors or advanced_form.errors %}
+    <div class="alert alert-danger bg-danger bg-opacity-20 border border-danger text-danger rounded-3 mb-4 p-3 shadow-sm" role="alert">
+        <div class="fw-bold mb-2 fs-6"><i class="bi bi-exclamation-triangle-fill me-2"></i>Validation Error(s) - Please correct the issues below:</div>
+        <ul class="mb-0 ps-3 fs-7">
+        {% for form_obj in all_forms %}
+            {% for field, errors in form_obj.errors.items %}
+                {% for error in errors %}
+                    <li><strong>{% if field != '__all__' %}{{ field|title }}{% else %}General{% endif %}:</strong> {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="card bg-slate-900 border-slate-800 text-white shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4 p-md-5">
+            <form method="post" enctype="multipart/form-data" id="tourEditForm">
+                {% csrf_token %}
+                {{ media_form.remove_gallery_images }}
+                
+                <!-- HIDDEN INPUTS FOR JSON SERIALIZATION -->
+                <input type="hidden" name="destinations" id="id_destinations_json" value="">
+                <input type="hidden" name="packages" id="id_packages_json" value="">
+                <input type="hidden" name="itinerary" id="id_itinerary_json" value="">
+                <input type="hidden" name="seo" id="id_seo_json" value="">
+
+                <!-- SECTION 1: BASIC INFORMATION -->
+                <h5 class="fw-bold text-amber-400 mb-3"><i class="bi bi-info-circle me-2"></i>General Tour Details</h5>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-8">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.title.label }} <span class="text-danger">*</span></label>
+                        {{ basic_form.title }}
+                        {% if basic_form.title.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.title.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.theme.label }}</label>
+                        {{ basic_form.theme }}
+                        {% if basic_form.theme.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.theme.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.summary.label }}</label>
+                        {{ basic_form.summary }}
+                        {% if basic_form.summary.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.summary.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <hr class="border-slate-800 my-4">
+
+                <!-- SECTION 2: PRIMARY LOCATION & DURATION -->
+                <h5 class="fw-bold text-amber-400 mb-3"><i class="bi bi-geo-alt me-2"></i>Primary Location & Duration</h5>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.destination.label }} <span class="text-danger">*</span></label>
+                        {{ basic_form.destination }}
+                        {% if basic_form.destination.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.destination.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.state.label }}</label>
+                        {{ basic_form.state }}
+                        {% if basic_form.state.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.state.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.country.label }} <span class="text-danger">*</span></label>
+                        {{ basic_form.country }}
+                        {% if basic_form.country.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.country.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.startLocation.label }}</label>
+                        {{ basic_form.startLocation }}
+                        {% if basic_form.startLocation.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.startLocation.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.duration_days.label }} <span class="text-danger">*</span></label>
+                        {{ basic_form.duration_days }}
+                        {% if basic_form.duration_days.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.duration_days.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <hr class="border-slate-800 my-4">
+
+                <!-- SECTION 3: MULTI-DESTINATIONS EDITOR -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-amber-400 mb-0"><i class="bi bi-map me-2"></i>Destinations Collection</h5>
+                    <button type="button" class="btn btn-sm btn-outline-amber" onclick="addDestinationRow()">
+                        <i class="bi bi-plus-lg me-1"></i> Add Destination
+                    </button>
+                </div>
+                <div class="card bg-slate-800 border-slate-700 p-3 mb-4 rounded-3">
+                    <div id="destinations-container" class="row g-3"></div>
+                    <div class="form-text text-slate-400 fs-8 mt-2">
+                        Add one or more destination locations associated with this expedition.
+                    </div>
+                </div>
+
+                <hr class="border-slate-800 my-4">
+
+                <!-- SECTION 4: COVER IMAGE MANAGEMENT -->
+                <h5 class="fw-bold text-amber-400 mb-3"><i class="bi bi-image me-2"></i>Cover Image Management</h5>
+                <div class="row g-4 mb-4 align-items-center">
+                    <div class="col-md-4">
+                        <div class="card bg-slate-800 border-slate-700 p-2 position-relative text-center overflow-hidden">
+                            <span class="badge bg-amber text-dark fw-bold position-absolute top-0 start-0 m-2 shadow-sm" id="cover-status-badge">Current Cover</span>
+                            <img src="{{ tour.cover_image|default:'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800' }}" id="cover-preview-img" alt="Cover Image" class="img-fluid rounded" style="max-height: 180px; width: 100%; object-fit: cover;">
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label text-slate-300 fs-7 fw-semibold">{{ media_form.cover_image.label }}</label>
+                            <input type="file" name="cover_image" id="{{ media_form.cover_image.id_for_label }}" class="form-control bg-slate-800 border-slate-700 text-white" accept="image/*" onchange="previewCoverReplacement(this)">
+                            <div class="form-text text-slate-400 fs-8">Uploading a new file will automatically replace the cover image on Cloudinary in folder <code>natours/tours/&lt;theme_slug&gt;/&lt;country_slug&gt;/&lt;tour_slug&gt;/cover</code>.</div>
+                            {% if media_form.cover_image.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ media_form.cover_image.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="form-check">
+                            {{ media_form.delete_cover }}
+                            <label class="form-check-label text-slate-300 fs-7 cursor-pointer" for="{{ media_form.delete_cover.id_for_label }}" onclick="setTimeout(toggleCoverDeletion, 50)">
+                                {{ media_form.delete_cover.label }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-800 my-4">
+
+                <!-- SECTION 5: GALLERY MANAGEMENT -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-amber-400 mb-0"><i class="bi bi-images me-2"></i>Gallery Images Management</h5>
+                    <span class="badge bg-slate-800 text-amber border border-slate-700 px-3 py-2 fs-7 fw-semibold" id="gallery-slots-badge">
+                        <i class="bi bi-collection-play me-1"></i> {{ tour.images|length }}/5 Gallery Slots Active
+                    </span>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    {% if tour.images %}
+                    <div class="col-12 mb-2">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">Existing Gallery Collection (Cloudinary Stored)</label>
+                        <div class="row g-3" id="existing-gallery-row">
+                            {% for img in tour.images %}
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3" id="gallery-card-{{ forloop.counter0 }}">
+                                <div class="card bg-slate-800 border-slate-700 h-100 overflow-hidden shadow-sm position-relative">
+                                    <div class="position-relative">
+                                        <img src="{{ img.secureUrl }}" id="preview-img-{{ forloop.counter0 }}" class="card-img-top" style="height: 140px; object-fit: cover;" alt="Gallery Image">
+                                        <span class="badge bg-slate-900 bg-opacity-75 text-amber border border-amber border-opacity-25 position-absolute top-0 start-0 m-2 fs-8 fw-bold">
+                                            Slot #{{ forloop.index }}
+                                        </span>
+                                        <div id="deletion-overlay-{{ forloop.counter0 }}" class="position-absolute top-0 start-0 w-100 h-100 bg-danger bg-opacity-75 d-flex flex-column align-items-center justify-content-center text-white d-none p-2 text-center">
+                                            <i class="bi bi-trash-fill fs-2 mb-1"></i>
+                                            <span class="fw-bold fs-8">Marked for Deletion</span>
+                                            <span class="fs-9 opacity-75">Will be removed on save</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-2 bg-slate-900 d-flex flex-column justify-content-between">
+                                        <div class="mb-2">
+                                            <div class="fs-9 text-slate-400 text-truncate" title="{{ img.publicId }}">
+                                                <i class="bi bi-cloud-check text-success me-1"></i><code>{{ img.publicId }}</code>
+                                            </div>
+                                            <div id="pending-badge-{{ forloop.counter0 }}" class="badge bg-amber text-dark fs-9 w-100 mt-1 d-none text-truncate"></div>
+                                        </div>
+                                        <div>
+                                            <!-- Replace Input & Button -->
+                                            <input type="file" name="replace_gallery_{{ forloop.counter0 }}" id="replace_input_{{ forloop.counter0 }}" class="d-none" accept="image/*" onchange="previewGalleryReplacement(this, {{ forloop.counter0 }})">
+                                            <label for="replace_input_{{ forloop.counter0 }}" class="btn btn-sm btn-outline-amber w-100 fs-8 py-1 mb-1 cursor-pointer">
+                                                <i class="bi bi-arrow-repeat me-1"></i> Replace Image
+                                            </label>
+                                            <button type="button" id="cancel-replace-{{ forloop.counter0 }}" class="btn btn-sm btn-link text-slate-400 w-100 fs-9 p-0 mb-1 d-none" data-index="{{ forloop.counter0 }}" data-url="{{ img.secureUrl }}" onclick="cancelGalleryReplacement(this)">
+                                                Cancel Replacement
+                                            </button>
+                                            
+                                            <!-- Delete Button -->
+                                            <button type="button" id="del_btn_{{ forloop.counter0 }}" class="btn btn-sm btn-outline-danger w-100 fs-8 py-1" data-index="{{ forloop.counter0 }}" data-public-id="{{ img.publicId }}" onclick="toggleImageDeletion(this)">
+                                                <i class="bi bi-trash me-1"></i> Delete Image
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if tour.images|length < 5 %}
+                    <div class="col-12 mt-3">
+                        <div class="card bg-slate-800 border-slate-700 p-3 rounded-3">
+                            <label class="form-label text-amber-400 fs-7 fw-semibold mb-2">
+                                <i class="bi bi-plus-circle-dotted me-1"></i> Add New Images to Gallery
+                            </label>
+                            <input type="file" name="new_gallery_images" id="id_new_gallery_images" multiple accept="image/*" class="form-control bg-slate-900 border-slate-700 text-white" onchange="previewNewGalleryAdditions(this)">
+                            <div class="form-text text-slate-400 fs-8 mt-2">
+                                Select multiple image files to add to the tour gallery. Images will be stored on Cloudinary under folder <code>natours/tours/&lt;theme_slug&gt;/&lt;country_slug&gt;/&lt;tour_slug&gt;/images</code>. (Maximum 5 gallery images allowed total).
+                            </div>
+                            {% if media_form.new_gallery_images.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ media_form.new_gallery_images.errors.0 }}</div>{% endif %}
+
+                            <div id="new-gallery-preview-container" class="row g-3 mt-2"></div>
+                        </div>
+                    </div>
+                   {% endif %}
+                </div>
+
+                <hr class="border-slate-800 my-4">
+
+                <!-- SECTION 6: PRICING & STATUS -->
+                <h5 class="fw-bold text-amber-400 mb-3"><i class="bi bi-cash-coin me-2"></i>Pricing & Status</h5>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.startingPrice.label }} <span class="text-danger">*</span></label>
+                        {{ basic_form.startingPrice }}
+                        {% if basic_form.startingPrice.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.startingPrice.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.discount.label }}</label>
+                        {{ basic_form.discount }}
+                        {% if basic_form.discount.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.discount.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.advanceBookingAmount.label }}</label>
+                        {{ basic_form.advanceBookingAmount }}
+                        <div class="form-text text-slate-400 fs-8">{{ basic_form.advanceBookingAmount.help_text }}</div>
+                        {% if basic_form.advanceBookingAmount.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.advanceBookingAmount.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ basic_form.status.label }}</label>
+                        {{ basic_form.status }}
+                        {% if basic_form.status.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ basic_form.status.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center pt-4">
+                        <div class="form-check me-4">
+                            {{ basic_form.featured }}
+                            <label class="form-check-label text-white fs-7 cursor-pointer" for="{{ basic_form.featured.id_for_label }}">{{ basic_form.featured.label }}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center pt-4">
+                        <div class="form-check">
+                            {{ basic_form.trending }}
+                            <label class="form-check-label text-white fs-7 cursor-pointer" for="{{ basic_form.trending.id_for_label }}">{{ basic_form.trending.label }}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-800 my-4">
+
+                <!-- SECTION 7: FULL DESCRIPTION & ITINERARY EDITOR -->
+                <h5 class="fw-bold text-amber-400 mb-3"><i class="bi bi-file-text me-2"></i>Full Description & Itinerary</h5>
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ content_form.description.label }} <span class="text-danger">*</span></label>
+                        {{ content_form.description }}
+                        {% if content_form.description.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ content_form.description.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-12 d-none">
+                        <!-- Legacy field kept for Django form compatibility -->
+                        {{ content_form.itinerary_text }}
+                    </div>
+                </div>
+
+                <!-- DYNAMIC ITINERARY EDITOR -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-amber-400 mb-0"><i class="bi bi-calendar-week me-2"></i>Day-by-Day Itinerary Builder</h6>
+                    <button type="button" class="btn btn-sm btn-outline-amber" onclick="addItineraryDayRow()">
+                        <i class="bi bi-plus-lg me-1"></i> Add Itinerary Day
+                    </button>
+                </div>
+                <div class="card bg-slate-800 border-slate-700 p-3 mb-4 rounded-3">
+                    <div id="itinerary-container" class="d-flex flex-column gap-3"></div>
+                </div>
+
+                <hr class="border-slate-800 my-4">
+
+                <!-- SECTION 8: PACKAGES & HOTELS EDITOR -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-amber-400 mb-0"><i class="bi bi-box-seam me-2"></i>Packages & Lodging Options</h5>
+                    <button type="button" class="btn btn-sm btn-outline-amber" onclick="addPackageCard()">
+                        <i class="bi bi-plus-lg me-1"></i> Add Package Option
+                    </button>
+                </div>
+                <div id="packages-container" class="d-flex flex-column gap-4 mb-4"></div>
+
+                <hr class="border-slate-800 my-4">
+
+                <!-- SECTION 9: ADVANCED EXPEDITION & SEO SETTINGS -->
+                <h5 class="fw-bold text-amber-400 mb-3"><i class="bi bi-sliders me-2"></i>Advanced Expedition & SEO Settings</h5>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ advanced_form.max_group_size.label }}</label>
+                        {{ advanced_form.max_group_size }}
+                        {% if advanced_form.max_group_size.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ advanced_form.max_group_size.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">{{ advanced_form.difficulty_level.label }}</label>
+                        {{ advanced_form.difficulty_level }}
+                        {% if advanced_form.difficulty_level.errors %}<div class="text-danger fs-8 mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ advanced_form.difficulty_level.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">SEO Meta Title</label>
+                        <input type="text" id="seo_meta_title" class="form-control bg-slate-800 border-slate-700 text-white" placeholder="Optimized Title for Search Engines">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">SEO Meta Keywords (comma separated)</label>
+                        <input type="text" id="seo_meta_keywords" class="form-control bg-slate-800 border-slate-700 text-white" placeholder="e.g. USA Tour, Mountains, Trekking">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-slate-300 fs-7 fw-semibold">SEO Meta Description</label>
+                        <textarea id="seo_meta_description" class="form-control bg-slate-800 border-slate-700 text-white" rows="2" placeholder="Search engine preview description..."></textarea>
+                    </div>
+                </div>
+
+                <!-- SECTION 10: READ-ONLY AUDIT METADATA CARD (IF EDITING) -->
+                {% if tour.slug or tour.createdAtFormatted %}
+                <hr class="border-slate-800 my-4">
+                <h5 class="fw-bold text-amber-400 mb-3"><i class="bi bi-clock-history me-2"></i>Audit & System Metadata</h5>
+                <div class="card bg-slate-800 border-slate-700 p-3 rounded-3 mb-4">
+                    <div class="row g-3 fs-7 text-slate-300">
+                        <div class="col-md-4">
+                            <strong class="text-amber-400">Tour Slug:</strong> <code>{{ tour.slug|default:'Auto-generated' }}</code>
+                        </div>
+                        <div class="col-md-4">
+                            <strong class="text-amber-400">Created By:</strong> {{ tour.createdByFormatted|default:'Admin System' }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong class="text-amber-400">Updated By:</strong> {{ tour.updatedByFormatted|default:'Admin System' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong class="text-amber-400">Created At:</strong> {{ tour.createdAtFormatted }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong class="text-amber-400">Last Updated At:</strong> {{ tour.updatedAtFormatted }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-5 pt-3 border-top border-slate-800">
+                    <div class="text-slate-400 fs-8">
+                        <i class="bi bi-shield-check text-amber me-1"></i> All modifications will reflect directly in MongoDB & Cloudinary upon saving.
+                    </div>
+                    <div class="d-flex gap-3">
+                        <a href="{% url 'tours:list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-dark btn-outline-secondary px-4" id="changeBtn">
+                            <i class="bi bi-pencil-square me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Parse Initial Data
+let tourData = {};
+try {
+    tourData = JSON.parse('{{ tour_json|escapejs|default:"{}" }}');
+} catch(e) {
+    console.error("Failed to parse initial tour JSON:", e);
+    tourData = {};
+}
+
+let markedForRemoval = [];
+
+// Dynamic Data Holders
+let destinationsList = [];
+let packagesList = [];
+let itineraryList = [];
+let seoData = { metaTitle: '', metaDescription: '', keywords: [] };
+
+// -----------------------------------------------------------------------------
+// INITIALIZATION
+// -----------------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', function() {
+    initDestinations();
+    initItinerary();
+    initPackages();
+    initSEO();
+
+    const form = document.getElementById('tourEditForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Validate & Serialize before submission
+            if (!serializeAndValidateForm(e)) {
+                e.preventDefault();
+                return false;
+            }
+
+            const btn = document.getElementById('changeBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving Changes...';
+            }
+        });
+    }
+});
+
+// -----------------------------------------------------------------------------
+// DESTINATIONS EDITOR
+// -----------------------------------------------------------------------------
+function initDestinations() {
+    if (Array.isArray(tourData.destinations) && tourData.destinations.length > 0) {
+        destinationsList = JSON.parse(JSON.stringify(tourData.destinations));
+    } else {
+        const defaultCity = document.getElementById('id_destination') ? document.getElementById('id_destination').value : '';
+        const defaultState = document.getElementById('id_state') ? document.getElementById('id_state').value : '';
+        const defaultCountry = document.getElementById('id_country') ? document.getElementById('id_country').value : '';
+        destinationsList = [{ city: defaultCity, state: defaultState, country: defaultCountry }];
+    }
+    renderDestinations();
+}
+
+function renderDestinations() {
+    const container = document.getElementById('destinations-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    destinationsList.forEach((dest, idx) => {
+        const div = document.createElement('div');
+        div.className = 'col-12';
+        div.innerHTML = `
+            <div class="row g-2 align-items-center bg-slate-900 p-2 rounded border border-slate-700">
+                <div class="col-md-3">
+                    <input type="text" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="City / Destination" value="${dest.city || ''}" oninput="destinationsList[${idx}].city = this.value">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="State / Region" value="${dest.state || ''}" oninput="destinationsList[${idx}].state = this.value">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="Country" value="${dest.country || ''}" oninput="destinationsList[${idx}].country = this.value">
+                </div>
+                <div class="col-md-2 text-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="removeDestinationRow(${idx})">
+                        <i class="bi bi-trash me-1"></i> Remove
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function addDestinationRow() {
+    destinationsList.push({ city: '', state: '', country: '' });
+    renderDestinations();
+}
+
+function removeDestinationRow(idx) {
+    if (destinationsList.length <= 1) {
+        alert("At least one destination entry is required.");
+        return;
+    }
+    destinationsList.splice(idx, 1);
+    renderDestinations();
+}
+
+// -----------------------------------------------------------------------------
+// ITINERARY EDITOR
+// -----------------------------------------------------------------------------
+function initItinerary() {
+    if (Array.isArray(tourData.itinerary) && tourData.itinerary.length > 0) {
+        itineraryList = JSON.parse(JSON.stringify(tourData.itinerary));
+    } else {
+        itineraryList = [
+            { day: 1, title: 'Arrival & Welcome Dinner', description: 'Arrive at destination, check-in to luxury hotel, meet guide.', location: { city: '', state: '', country: '', lat: '', lng: '' } }
+        ];
+    }
+    renderItinerary();
+}
+
+function renderItinerary() {
+    const container = document.getElementById('itinerary-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    itineraryList.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card bg-slate-900 border-slate-700 p-3 rounded';
+        const loc = item.location || {};
+        card.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-amber text-dark fw-bold">Day #${item.day || (idx + 1)}</span>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItineraryDay(${idx})">
+                    <i class="bi bi-trash me-1"></i> Delete Day
+                </button>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-2">
+                    <label class="form-label text-slate-400 fs-8 mb-1">Day #</label>
+                    <input type="number" min="1" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" value="${item.day || (idx + 1)}" onchange="itineraryList[${idx}].day = parseInt(this.value, 10)">
+                </div>
+                <div class="col-md-10">
+                    <label class="form-label text-slate-400 fs-8 mb-1">Day Title</label>
+                    <input type="text" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="e.g. Scenic Alpine Trek" value="${item.title || ''}" oninput="itineraryList[${idx}].title = this.value">
+                </div>
+                <div class="col-12">
+                    <label class="form-label text-slate-400 fs-8 mb-1">Activities & Details</label>
+                    <textarea class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" rows="2" placeholder="Describe meals, excursions, transport..." oninput="itineraryList[${idx}].description = this.value">${item.description || ''}</textarea>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="City" value="${loc.city || ''}" oninput="updateItineraryLocation(${idx}, 'city', this.value)">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="State" value="${loc.state || ''}" oninput="updateItineraryLocation(${idx}, 'state', this.value)">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="Country" value="${loc.country || ''}" oninput="updateItineraryLocation(${idx}, 'country', this.value)">
+                </div>
+                <div class="col-md-3">
+                    <div class="row g-1">
+                        <div class="col-6">
+                            <input type="number" step="any" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="Lat" value="${loc.lat || ''}" oninput="updateItineraryLocation(${idx}, 'lat', this.value)">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" step="any" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="Lng" value="${loc.lng || ''}" oninput="updateItineraryLocation(${idx}, 'lng', this.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function updateItineraryLocation(idx, key, val) {
+    if (!itineraryList[idx].location) itineraryList[idx].location = {};
+    itineraryList[idx].location[key] = val;
+}
+
+function addItineraryDayRow() {
+    const nextDay = itineraryList.length + 1;
+    itineraryList.push({ day: nextDay, title: `Day ${nextDay} Expedition`, description: '', location: { city: '', state: '', country: '', lat: '', lng: '' } });
+    renderItinerary();
+}
+
+function removeItineraryDay(idx) {
+    itineraryList.splice(idx, 1);
+    // Re-index days sequentially
+    itineraryList.forEach((item, i) => { item.day = i + 1; });
+    renderItinerary();
+}
+
+// -----------------------------------------------------------------------------
+// PACKAGES & HOTELS EDITOR
+// -----------------------------------------------------------------------------
+function initPackages() {
+    if (Array.isArray(tourData.packages) && tourData.packages.length > 0) {
+        packagesList = JSON.parse(JSON.stringify(tourData.packages));
+    } else {
+        packagesList = [{
+            name: 'Standard Expedition Package',
+            price: 3000,
+            transportation: 'Private AC Coach',
+            assistance: '24/7 Dedicated Concierge',
+            meals: ['Breakfast Included', 'Dinner Included'],
+            extraFacilities: ['Free Wi-Fi', 'Guided Tours'],
+            hotels: [{ name: 'Grand Alpine Resort', rating: 4, website: '', roomType: 'Standard Deluxe' }]
+        }];
+    }
+    renderPackages();
+}
+
+function renderPackages() {
+    const container = document.getElementById('packages-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    packagesList.forEach((pkg, pIdx) => {
+        const card = document.createElement('div');
+        card.className = 'card bg-slate-800 border-slate-700 p-4 rounded-3 shadow-sm';
+        
+        const mealsStr = Array.isArray(pkg.meals) ? pkg.meals.join(', ') : (pkg.meals || '');
+        const extrasStr = Array.isArray(pkg.extraFacilities) ? pkg.extraFacilities.join(', ') : (pkg.extraFacilities || '');
+
+        let hotelsHtml = '';
+        const hotels = pkg.hotels || [];
+        hotels.forEach((h, hIdx) => {
+            hotelsHtml += `
+                <div class="row g-2 align-items-center bg-slate-950 p-2 rounded mb-2 border border-slate-800">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="Hotel Name" value="${h.name || ''}" oninput="packagesList[${pIdx}].hotels[${hIdx}].name = this.value">
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select form-select-sm bg-slate-800 border-slate-700 text-white" onchange="packagesList[${pIdx}].hotels[${hIdx}].rating = parseInt(this.value, 10)">
+                            <option value="1" ${h.rating == 1 ? 'selected' : ''}>1 Star</option>
+                            <option value="2" ${h.rating == 2 ? 'selected' : ''}>2 Stars</option>
+                            <option value="3" ${h.rating == 3 ? 'selected' : ''}>3 Stars</option>
+                            <option value="4" ${h.rating == 4 ? 'selected' : ''}>4 Stars</option>
+                            <option value="5" ${h.rating == 5 ? 'selected' : ''}>5 Stars</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="Room Type" value="${h.roomType || 'Standard'}" oninput="packagesList[${pIdx}].hotels[${hIdx}].roomType = this.value">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="url" class="form-control form-control-sm bg-slate-800 border-slate-700 text-white" placeholder="Website URL" value="${h.website || ''}" oninput="packagesList[${pIdx}].hotels[${hIdx}].website = this.value">
+                    </div>
+                    <div class="col-md-1 text-end">
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removeHotelFromPackage(${pIdx}, ${hIdx})">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        card.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-amber-400 mb-0"><i class="bi bi-box me-2"></i>Package #${pIdx + 1}: ${pkg.name || 'Unnamed'}</h6>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePackageCard(${pIdx})">
+                    <i class="bi bi-trash me-1"></i> Delete Package
+                </button>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label text-slate-300 fs-8 mb-1">Package Name</label>
+                    <input type="text" class="form-control form-control-sm bg-slate-900 border-slate-700 text-white" value="${pkg.name || ''}" oninput="packagesList[${pIdx}].name = this.value">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-slate-300 fs-8 mb-1">Price ($ USD)</label>
+                    <input type="number" min="0" class="form-control form-control-sm bg-slate-900 border-slate-700 text-white" value="${pkg.price || 0}" onchange="packagesList[${pIdx}].price = parseFloat(this.value)">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-slate-300 fs-8 mb-1">Transportation Mode</label>
+                    <input type="text" class="form-control form-control-sm bg-slate-900 border-slate-700 text-white" value="${pkg.transportation || ''}" oninput="packagesList[${pIdx}].transportation = this.value">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-slate-300 fs-8 mb-1">Included Meals (comma-separated)</label>
+                    <input type="text" class="form-control form-control-sm bg-slate-900 border-slate-700 text-white" value="${mealsStr}" oninput="updatePackageArrayField(${pIdx}, 'meals', this.value)">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-slate-300 fs-8 mb-1">Extra Facilities (comma-separated)</label>
+                    <input type="text" class="form-control form-control-sm bg-slate-900 border-slate-700 text-white" value="${extrasStr}" oninput="updatePackageArrayField(${pIdx}, 'extraFacilities', this.value)">
+                </div>
+            </div>
+
+            <!-- HOTELS SECTION -->
+            <div class="bg-slate-900 p-3 rounded border border-slate-700">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fs-8 fw-semibold text-slate-300"><i class="bi bi-building me-1"></i> Lodging & Hotels (${hotels.length})</span>
+                    <button type="button" class="btn btn-sm btn-outline-amber py-0 fs-8" onclick="addHotelToPackage(${pIdx})">
+                        <i class="bi bi-plus me-1"></i> Add Hotel
+                    </button>
+                </div>
+                <div>${hotelsHtml || '<div class="fs-8 text-slate-500 italic">No hotels added to this package yet.</div>'}</div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function updatePackageArrayField(pIdx, fieldName, rawStr) {
+    const list = rawStr.split(',').map(s => s.strip ? s.strip() : s.trim()).filter(Boolean);
+    packagesList[pIdx][fieldName] = list;
+}
+
+function addPackageCard() {
+    packagesList.push({
+        name: 'Deluxe Expedition Package',
+        price: 3500,
+        transportation: 'Private Luxury SUV',
+        assistance: '24/7 Personal Guide',
+        meals: ['All Meals Included'],
+        extraFacilities: ['Free High-Speed Wi-Fi'],
+        hotels: [{ name: 'Five Star Grand Hotel', rating: 5, website: '', roomType: 'Executive Suite' }]
+    });
+    renderPackages();
+}
+
+function removePackageCard(pIdx) {
+    if (packagesList.length <= 1) {
+        alert("At least one package configuration is required.");
+        return;
+    }
+    packagesList.splice(pIdx, 1);
+    renderPackages();
+}
+
+function addHotelToPackage(pIdx) {
+    if (!packagesList[pIdx].hotels) packagesList[pIdx].hotels = [];
+    packagesList[pIdx].hotels.push({ name: 'Luxury Hotel', rating: 4, website: '', roomType: 'Standard' });
+    renderPackages();
+}
+
+function removeHotelFromPackage(pIdx, hIdx) {
+    packagesList[pIdx].hotels.splice(hIdx, 1);
+    renderPackages();
+}
+
+// -----------------------------------------------------------------------------
+// SEO EDITOR
+// -----------------------------------------------------------------------------
+function initSEO() {
+    const seo = tourData.seo || {};
+    document.getElementById('seo_meta_title').value = seo.metaTitle || tourData.title || '';
+    document.getElementById('seo_meta_description').value = seo.metaDescription || tourData.summary || '';
+    const kw = Array.isArray(seo.keywords) ? seo.keywords.join(', ') : (seo.keywords || '');
+    document.getElementById('seo_meta_keywords').value = kw;
+}
+
+function getSEOObject() {
+    const titleVal = document.getElementById('seo_meta_title').value;
+    const descVal = document.getElementById('seo_meta_description').value;
+    const kwStr = document.getElementById('seo_meta_keywords').value;
+    const kwList = kwStr.split(',').map(s => s.trim()).filter(Boolean);
+
+    return {
+        metaTitle: titleVal,
+        metaDescription: descVal,
+        keywords: kwList
+    };
+}
+
+// -----------------------------------------------------------------------------
+// COVER & GALLERY HANDLERS
+// -----------------------------------------------------------------------------
+function toggleCoverDeletion() {
+    const check = document.getElementById('{{ media_form.delete_cover.id_for_label }}');
+    const badge = document.getElementById('cover-status-badge');
+    const img = document.getElementById('cover-preview-img');
+    if (check && check.checked) {
+        if (badge) {
+            badge.className = 'badge bg-danger text-white fw-bold position-absolute top-0 start-0 m-2 shadow-sm';
+            badge.innerText = 'Marked for Deletion';
+        }
+        if (img) img.style.opacity = '0.3';
+    } else {
+        if (badge) {
+            badge.className = 'badge bg-amber text-dark fw-bold position-absolute top-0 start-0 m-2 shadow-sm';
+            badge.innerText = 'Current Cover';
+        }
+        if (img) img.style.opacity = '1';
+    }
+}
+
+function toggleImageDeletion(target, indexParam) {
+    let publicId = '';
+    let index = 0;
+
+    if (target && typeof target === 'object' && target.getAttribute) {
+        publicId = target.getAttribute('data-public-id') || '';
+        index = parseInt(target.getAttribute('data-index') || '0', 10);
+    } else {
+        publicId = target;
+        index = indexParam;
+    }
+
+    if (!publicId) return;
+    const card = document.getElementById('gallery-card-' + index);
+    const btn = document.getElementById('del_btn_' + index);
+    const hiddenInput = document.getElementById('id_remove_gallery_images');
+
+    const itemIdx = markedForRemoval.indexOf(publicId);
+    if (itemIdx === -1) {
+        markedForRemoval.push(publicId);
+        if (card) {
+            card.classList.add('border-danger');
+            const overlay = document.getElementById('deletion-overlay-' + index);
+            if (overlay) overlay.classList.remove('d-none');
+        }
+        if (btn) {
+            btn.className = 'btn btn-sm btn-warning w-100 fs-8 py-1 fw-bold';
+            btn.innerHTML = '<i class="bi bi-arrow-counterclockwise me-1"></i> Undo Removal';
+        }
+    } else {
+        markedForRemoval.splice(itemIdx, 1);
+        if (card) {
+            card.classList.remove('border-danger');
+            const overlay = document.getElementById('deletion-overlay-' + index);
+            if (overlay) overlay.classList.add('d-none');
+        }
+        if (btn) {
+            btn.className = 'btn btn-sm btn-outline-danger w-100 fs-8 py-1';
+            btn.innerHTML = '<i class="bi bi-trash me-1"></i> Delete Image';
+        }
+    }
+
+    if (hiddenInput) {
+        hiddenInput.value = markedForRemoval.join(',');
+    }
+}
+
+function previewGalleryReplacement(input, index) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('preview-img-' + index);
+            if (img) img.src = e.target.result;
+
+            const pendingBadge = document.getElementById('pending-badge-' + index);
+            if (pendingBadge) {
+                pendingBadge.classList.remove('d-none');
+                pendingBadge.innerText = 'Replacing: ' + file.name;
+            }
+
+            const cancelBtn = document.getElementById('cancel-replace-' + index);
+            if (cancelBtn) cancelBtn.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function cancelGalleryReplacement(target, originalUrlParam) {
+    let index = 0;
+    let originalUrl = '';
+
+    if (target && typeof target === 'object' && target.getAttribute) {
+        index = parseInt(target.getAttribute('data-index') || '0', 10);
+        originalUrl = target.getAttribute('data-url') || '';
+    } else {
+        index = target;
+        originalUrl = originalUrlParam;
+    }
+
+    const input = document.getElementById('replace_input_' + index);
+    if (input) input.value = '';
+
+    const img = document.getElementById('preview-img-' + index);
+    if (img && originalUrl) img.src = originalUrl;
+
+    const pendingBadge = document.getElementById('pending-badge-' + index);
+    if (pendingBadge) pendingBadge.classList.add('d-none');
+
+    const cancelBtn = document.getElementById('cancel-replace-' + index);
+    if (cancelBtn) cancelBtn.classList.add('d-none');
+}
+
+function previewNewGalleryAdditions(input) {
+    const container = document.getElementById('new-gallery-preview-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (input.files && input.files.length > 0) {
+        Array.from(input.files).forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-sm-4 col-md-3';
+                col.innerHTML = `
+                    <div class="card bg-slate-900 border-amber border-opacity-50 text-white h-100 overflow-hidden shadow-sm">
+                        <div class="position-relative">
+                            <img src="${e.target.result}" class="card-img-top" style="height: 110px; object-fit: cover;" alt="New Upload Preview">
+                            <span class="badge bg-amber text-dark fw-bold position-absolute top-0 end-0 m-1 fs-9">New Upload #${idx + 1}</span>
+                        </div>
+                        <div class="card-body p-2 bg-slate-950 fs-9 text-truncate text-slate-300">
+                            <i class="bi bi-file-earmark-image me-1 text-amber"></i>${file.name}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
+
+function previewCoverReplacement(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('cover-preview-img');
+            if (img) img.src = e.target.result;
+
+            const badge = document.getElementById('cover-status-badge');
+            if (badge) {
+                badge.className = 'badge bg-amber text-dark fw-bold position-absolute top-0 start-0 m-2 shadow-sm';
+                badge.innerText = 'New Cover Preview';
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// SERIALIZATION & VALIDATION BEFORE SUBMIT
+// -----------------------------------------------------------------------------
+function serializeAndValidateForm(e) {
+    // 1. Validate Price, Discount, Deposit
+    const priceInput = document.getElementById('id_startingPrice');
+    const discountInput = document.getElementById('id_discount');
+    const advanceInput = document.getElementById('id_advanceBookingAmount');
+
+    const price = priceInput ? parseFloat(priceInput.value || 0) : 0;
+    const discount = discountInput ? parseFloat(discountInput.value || 0) : 0;
+    const advance = advanceInput ? parseFloat(advanceInput.value || 0) : 0;
+
+    if (discount > price) {
+        alert(`Validation Error: Discount amount ($${discount}) cannot exceed the Starting Price ($${price}).`);
+        if (discountInput) discountInput.focus();
+        return false;
+    }
+
+    const effectivePrice = price - discount;
+    if (advance > effectivePrice) {
+        alert(`Validation Error: Advance Deposit ($${advance}) cannot exceed the net price ($${effectivePrice}).`);
+        if (advanceInput) advanceInput.focus();
+        return false;
+    }
+
+    // 2. Validate Gallery Images Count (Max 5)
+    const existingCount = (tourData.images || []).length;
+    const deletedCount = markedForRemoval.length;
+    const newFilesInput = document.getElementById('id_new_gallery_images');
+    const newFilesCount = newFilesInput && newFilesInput.files ? newFilesInput.files.length : 0;
+    const totalGalleryCount = existingCount - deletedCount + newFilesCount;
+
+    if (totalGalleryCount > 5) {
+        alert(`Validation Error: Total gallery images cannot exceed 5. Currently configured: ${totalGalleryCount} (${existingCount} existing - ${deletedCount} deleted + ${newFilesCount} new).`);
+        return false;
+    }
+
+    // 3. Serialize Hidden JSONs
+    document.getElementById('id_destinations_json').value = JSON.stringify(destinationsList);
+    document.getElementById('id_packages_json').value = JSON.stringify(packagesList);
+    document.getElementById('id_itinerary_json').value = JSON.stringify(itineraryList);
+    document.getElementById('id_seo_json').value = JSON.stringify(getSEOObject());
+
+    return true;
+}
+</script>
+{% endblock %}

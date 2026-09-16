@@ -1,0 +1,58 @@
+extends baseEmail
+
+block content
+
+    h2 Hello #{firstName},
+
+    p
+        | We have completed the initial review of the travel documents submitted for your booking.
+
+    p
+        strong Action Required:
+        |  One or more of the submitted documents could not be verified. Please review the details below and upload corrected copies so we can continue processing your booking.
+
+    table(role="presentation" width="100%" cellpadding="8" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;margin:25px 0;")
+        tbody
+            tr
+                td(style="font-weight:bold;width:180px;") Booking Number
+                td= book.bookingNumber
+
+            tr
+                td(style="font-weight:bold;") Tour
+                td= book.tour.name
+
+            tr
+                td(style="font-weight:bold;") Verification Status
+                td Rejected
+
+    h3(style="margin-bottom:15px;") Rejected Documents
+
+    each doc in rejectedDocsList
+        table(role="presentation" width="100%" cellpadding="12" cellspacing="0" style="margin-bottom:16px;background:#FEF2F2;border-left:4px solid #DC2626;border-radius:6px;")
+            tbody
+                tr
+                    td
+                        p(style="margin:0 0 8px 0;")
+                            strong Traveler:
+                            |  #{doc.travelerName}
+
+                        p(style="margin:0 0 8px 0;")
+                            strong Document:
+                            |  #{doc.docType}
+
+                        p(style="margin:0;")
+                            strong Reason:
+                            |  #{doc.reason}
+
+    p
+        | After uploading the corrected documents, our verification team will review them again.
+        | Your booking will continue once all required documents have been successfully verified.
+
+    p
+        | If you need any assistance during this process, our support team is always happy to help.
+
+    p
+        | Thank you for your cooperation.
+
+    p
+        strong Natours Verification Team

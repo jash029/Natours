@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Consultation Details | Natours Travel Admin{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'consultants:list' %}" class="btn btn-sm btn-outline-secondary mb-2">
+        <i class="bi bi-arrow-left me-1"></i> Back to Consultation Requests
+    </a>
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h3 class="fw-bold mb-1">Consultation Request: {{ consultation.fullName }}</h3>
+            <p class="text-muted fs-7 mb-0">Client Contact: {{ consultation.email }}</p>
+        </div>
+        <span class="badge bg-primary fs-7 p-2">
+            Status: {{ consultation.status|title }}
+        </span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card-enterprise p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-person-vcard me-2 text-primary"></i>Client & Meeting Details</h5>
+            <div class="row g-3 fs-7">
+                <div class="col-md-6">
+                    <span class="text-muted d-block">Full Name</span>
+                    <strong class="text-body">{{ consultation.fullName }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted d-block">Email Address</span>
+                    <strong class="text-body">{{ consultation.email }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted d-block">Meeting Mode</span>
+                    <strong class="text-body">{{ consultation.meetingMode|title }}</strong>
+                </div>
+                <div class="col-md-6">
+                    <span class="text-muted d-block">Preferred Date & Time</span>
+                    <strong class="text-body">{{ consultation.date|slice:":10" }} @ {{ consultation.preferredTime }}</strong>
+                </div>
+                <div class="col-12 mt-3 pt-3 border-top">
+                    <span class="text-muted d-block mb-1">Client Message / Inquiry</span>
+                    <div class="p-3 bg-body-tertiary rounded border fs-7">
+                        {{ consultation.message|default:"No message provided." }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not consultation.status == 'completed' %}
+     {% if  consultation.status == 'pending' %}
+    <div class="col-lg-5">
+        <div class="card-enterprise p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-check2-square me-2 text-primary"></i>Update Request Status & Notes</h5>
+            <form method="post">
+                {% csrf_token %}
+               
+                <div class="mb-3">
+                    <label class="form-label fs-7 fw-semibold">Consultation Status</label>
+                    {{ form.status }}
+                </div>
+
+                
+                {% if consultation.meetingMode == 'online' %}
+                <div class="mb-4">
+                    <label class="form-label fs-7 fw-semibold">Send User Email Message</label>
+                    {{ form.internalNotes }}
+                </div>
+                {% endif %}
+              
+                <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                    <i class="bi bi-check-lg me-1"></i> Save Changes & Log Audit
+                </button>
+                
+            </form>
+        </div>
+         {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,246 @@
+
+extends baseEmail
+
+block content
+  h1 Booking Confirmation & Invoice
+
+  p Hello #{book.user.name.split(' ')[0]},
+
+  p
+    | Thank you for choosing
+    strong  Natours.
+    | We're delighted to confirm your booking. Your payment has been processed successfully, and your booking invoice is now available.
+
+  p
+    | Please review the details below and keep this email for your records.
+
+  h2 Booking Summary
+
+  table(role="presentation" width="100%" cellpadding="8" cellspacing="0" border="0")
+    tbody
+
+      tr
+        td
+          strong Booking Number
+        td #{book.bookingNumber}
+
+      tr
+        td
+          strong Booking Status
+        td #{book.bookingStatus}
+
+      tr
+        td
+          strong Payment Status
+        td #{book.payment.status}
+
+      tr
+        td
+          strong Booking Date
+        td #{book.createdAt.toLocaleDateString()}
+
+      tr
+        td
+          strong Travel Date
+        td #{book.travelDate.toLocaleDateString()}
+
+  h2 Tour Information
+
+  table(role="presentation" width="100%" cellpadding="8" cellspacing="0" border="0")
+    tbody
+
+      tr
+        td
+          strong Tour
+        td #{book.tour.name}
+
+      tr
+        td
+          strong Theme
+        td #{book.tour.theme}
+
+      tr
+        td
+          strong Package
+        td #{book.packageName}
+
+      tr
+        td
+          strong Duration
+        td #{book.tour.duration.days} Days / #{book.tour.duration.nights} Nights
+
+      tr
+        td
+          strong Start Location
+        td #{book.tour.startLocation}
+
+      tr
+        td
+          strong Hotel
+        td #{book.selectedHotel.name}
+
+      tr
+        td
+          strong Room Type
+        td #{book.selectedHotel.roomType}
+
+      tr
+        td
+          strong Hotel Rating
+        td #{book.selectedHotel.rating} ★
+
+      tr
+        td
+          strong Hotel Website
+        td
+          a(href=book.selectedHotel.website target="_blank")
+            | Visit Hotel Website
+
+      tr
+        td
+          strong Tour Slug
+        td #{book.tour.slug}
+
+  if book.tour.destinations.length
+    h2 Destinations
+
+    ul
+      each destination in book.tour.destinations
+        li
+          | #{destination.city}, #{destination.state}, #{destination.country}
+
+  h2 Travelers
+
+  p
+    strong Total Travelers:
+    |  #{book.travelers.length}
+
+  each traveler, index in book.travelers
+    h3 Traveler #{index + 1}
+
+    table(role="presentation" width="100%" cellpadding="8" cellspacing="0" border="0")
+      tbody
+        tr
+          td
+            strong Name
+          td #{traveler.firstName} #{traveler.lastName}
+
+        tr
+          td
+            strong Gender
+          td #{traveler.gender}
+
+        tr
+          td
+            strong Date of Birth
+          td #{traveler.dob.toLocaleDateString()}
+
+        tr
+          td
+            strong Nationality
+          td #{traveler.nationality}
+
+        tr
+          td
+            strong Phone Number
+          td #{traveler.phoneNumber}
+
+        tr
+          td
+            strong Passport Number
+          td #{traveler.travelDocuments.passport.number}
+
+        tr
+          td
+            strong Visa Number
+          td #{traveler.travelDocuments.visa.number}
+
+        tr
+          td
+            strong National ID
+          td #{traveler.travelDocuments.nationalId.number}
+
+        tr
+          td
+            strong Insurance Policy
+          td #{traveler.travelDocuments.insurance.policyNumber}
+
+  h2 Payment Summary
+
+  table(role="presentation" width="100%" cellpadding="8" cellspacing="0" border="0")
+    tbody
+
+      tr
+        td
+          strong Payment Method
+        td #{book.payment.provider}
+
+      tr
+        td
+          strong Order ID
+        td #{book.payment.orderId}
+
+      tr
+        td
+          strong Payment ID
+        td #{book.payment.paymentId}
+
+      tr
+        td
+          strong Paid On
+        td #{book.payment.paidAt.toLocaleDateString()}
+
+      tr
+        td
+          strong Price Per Person
+        td ₹#{book.pricePerPerson}
+
+      tr
+        td
+          strong Total Amount
+        td ₹#{book.totalAmount}
+
+      tr
+        td
+          strong Amount Paid
+        td ₹#{book.amountPaid}
+
+      tr
+        td
+          strong Remaining Amount
+        td ₹#{book.remainingAmount}
+
+  h2 Emergency Contact
+
+  table(role="presentation" width="100%" cellpadding="8" cellspacing="0" border="0")
+    tbody
+      tr
+        td
+          strong Name
+        td #{book.emergencyContact.name}
+
+      tr
+        td
+          strong Relation
+        td #{book.emergencyContact.relation}
+
+      tr
+        td
+          strong Phone Number
+        td #{book.emergencyContact.phoneNumber}
+
+  h2 Important Information
+
+  ul
+    li Carry your original Passport, Visa, National ID and any required travel documents.
+    li Remaining payment (if applicable) must be completed before the travel date.
+    li Keep this invoice for future reference.
+
+  p
+    | If you have any questions regarding your booking, simply reply to this email and our support team will be happy to assist you.
+
+  p
+    strong Thank you for travelling with Natours.
+    br
+    | We wish you a safe, enjoyable and memorable journey!
+

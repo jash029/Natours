@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Consultation Requests | Natours Travel Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Consultation Requests</h3>
+        <p class="text-muted fs-7 mb-0">Junior Admin Module: Review, filter, update status, and resolve customer consultation inquiries.</p>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card-enterprise p-3 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label fs-8 text-muted fw-semibold">Search</label>
+            <input type="text" name="search" class="form-control" placeholder="Search by client name, email, or message..." value="{{ search }}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fs-8 text-muted fw-semibold">Status Filter</label>
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="resolved" {% if status == 'resolved' %}selected{% endif %}>Resolved</option>
+                <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100 fw-semibold"><i class="bi bi-search me-1"></i> Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card-enterprise">
+    <div class="table-responsive">
+        <table class="table table-enterprise align-middle">
+            <thead>
+                <tr>
+                    <th>Client Name</th>
+                    <th>Email Address</th>
+                    <th>Meeting Mode</th>
+                    <th>Preferred Date & Time</th>
+                    <th>Status</th>
+                    <th>Requested At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in consultations %}
+                <tr>
+                    <td>
+                        <div class="fw-bold text-body fs-7">{{ c.fullName }}</div>
+                    </td>
+                    <td><span class="fs-7 text-body">{{ c.email }}</span></td>
+                    <td>
+                        {% if c.meetingMode == 'online' %}
+                            <span class="badge bg-info-subtle text-info border border-info-subtle"><i class="bi bi-camera-video me-1"></i> Online</span>
+                        {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary border"><i class="bi bi-geo-alt me-1"></i> In-Person</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="fs-7 text-body">{{ c.date|slice:":10" }} @ {{ c.preferredTime }}</span></td>
+                    <td>
+                        {% if c.status == 'resolved' or c.status == 'completed' %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">{{ c.status|title }}</span>
+                        {% elif c.status == 'confirmed' %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Confirmed</span>
+                        {% elif c.status == 'cancelled' %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="fs-7 text-muted">{{ c.createdAt|slice:":10"|default:"Recent" }}</span></td>
+                    <td>
+                        {% if c.status != 'pending' %}
+                        <a href="{% url 'consultants:detail' c.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-folder2-open me-1"></i> Open Request
+                        </a>
+                        {% else %}
+                        <a href="{% url 'consultants:detail' c.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-folder2-open me-1"></i> Complete Request
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-chat-left-dots fs-1 d-block mb-2"></i>
+                        No consultation requests found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

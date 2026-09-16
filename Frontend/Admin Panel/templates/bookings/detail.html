@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Audit & Document Verification | Natours Travel Admin{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'bookings:list' %}" class="btn btn-sm btn-outline-secondary mb-2">
+        <i class="bi bi-arrow-left me-1"></i> Back to All Bookings
+    </a>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-shield-check text-primary me-2"></i>Booking Audit: {{ booking.bookingNumber }}</h3>
+            <p class="text-muted fs-7 mb-0">Tour: <strong>{{ booking.tour.name }}</strong> | Booked by: <strong>{{ booking.user.name }}</strong> ({{ booking.user.email }})</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge {% if booking.documentVerificationStatus == 'verified' %}bg-success{% elif booking.documentVerificationStatus == 'rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %} fs-7 p-2">
+                Doc Audit: {{ booking.documentVerificationStatus|title }}
+            </span>
+            <span class="badge {% if booking.payment.status == 'fullPaid' %}bg-success{% else %}bg-info text-dark{% endif %} fs-7 p-2">
+                Payment: {{ booking.payment.status|title }}
+            </span>
+            <span class="badge bg-secondary fs-7 p-2">
+                Journey: {{ booking.bookingStatus|title }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Tour, Pricing, Payment Status & Travelers Documents -->
+    <div class="col-lg-8">
+        
+        <!-- Summary Cards Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card-enterprise p-3 h-100">
+                    <h6 class="fw-bold text-primary mb-2 fs-7"><i class="bi bi-geo-alt me-1"></i>Tour Expedition Info</h6>
+                    <div class="fs-7">
+                        <div class="fw-bold text-body mb-1">{{ booking.tour.name }}</div>
+                        <div class="text-muted fs-8 mb-1">Package: <strong>{{ booking.packageName }}</strong></div>
+                        <div class="text-muted fs-8 mb-1">Hotel: <strong>{{ booking.selectedHotel.name }}</strong> ({{ booking.selectedHotel.rating }}-Star, {{ booking.selectedHotel.roomType }})</div>
+                        <div class="text-muted fs-8">Travel Date: <strong>{{ booking.travelDate|slice:":10" }}</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-enterprise p-3 h-100">
+                    <h6 class="fw-bold text-primary mb-2 fs-7"><i class="bi bi-cash-stack me-1"></i>Pricing & Payment Breakdown</h6>
+                    <div class="fs-7">
+                        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Total Amount:</span> <strong>${{ booking.totalAmount }}</strong></div>
+                        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Amount Paid:</span> <strong class="text-success">${{ booking.amountPaid }}</strong></div>
+                        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Remaining Offline Amount:</span> <strong class="text-danger">${{ booking.remainingAmount }}</strong></div>
+                        <div class="d-flex justify-content-between"><span class="text-muted">Payment Provider:</span> <span class="badge bg-light text-dark border">{{ booking.payment.provider|upper }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Verification Form & Traveler List -->
+        <div class="card-enterprise p-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-folder2-open me-2 text-primary"></i>Traveler Documents & Audit Checklist</h5>
+                {% if booking.documentVerificationStatus == 'verified' %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
+                        <i class="bi bg-lock-fill me-1"></i> Verification Complete (Read-Only)
+                    </span>
+                {% else %}
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle p-2">
+                        <i class="bi bi-pencil-square me-1"></i> Verification Pending
+                    </span>
+                {% endif %}
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="verify_documents">
+
+                {% for traveler in booking.travelers %}
+                <div class="p-3 bg-body-tertiary rounded border mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                        <h6 class="fw-bold mb-0 text-primary fs-7">
+                            <i class="bi bi-person-vcard me-1"></i> Traveler #{{ forloop.counter }}: {{ traveler.firstName }} {{ traveler.lastName }}
+                        </h6>
+                        <span class="fs-8 text-muted">{{ traveler.gender }} | Age: {{ traveler.ageAtBooking }} | {{ traveler.nationality }}</span>
+                    </div>
+
+                    <div class="row g-3 fs-7 mb-3">
+                        <div class="col-md-4">
+                            <span class="text-muted d-block fs-8">Phone Number</span>
+                            <strong>{{ traveler.phoneNumber }}</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="text-muted d-block fs-8">Date of Birth</span>
+                            <strong>{{ traveler.dob|slice:":10" }}</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="text-muted d-block fs-8">Emergency Contact</span>
+                            <strong>{{ booking.emergencyContact.name }} ({{ booking.emergencyContact.phoneNumber }})</strong>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-semibold fs-8 text-uppercase text-secondary mb-2">Uploaded Travel Documents</h6>
+
+                    <div class="row g-3">
+                        <!-- Passport -->
+                        <div class="col-md-6">
+                            <div class="p-2 border rounded bg-dark">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold fs-8"><i class="bi bi-journal-bookmark me-1 text-primary"></i>Passport</span>
+                                    {% if traveler.travelDocuments.passport.file.status == 'verified' %}
+                                        <span class="badge bg-success-subtle text-success border fs-8">Verified</span>
+                                    {% elif traveler.travelDocuments.passport.file.status == 'rejected' %}
+                                        <span class="badge bg-danger-subtle text-danger border fs-8">Rejected</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border fs-8">Pending</span>
+                                    {% endif %}
+                                </div>
+                                <div class="fs-8 text-muted mb-2">No: {{ traveler.travelDocuments.passport.number|default:"N/A" }}</div>
+                                {% if traveler.travelDocuments.passport.file.secureUrl %}
+                                    <a href="{{ traveler.travelDocuments.passport.file.secureUrl }}" target="_blank" class="btn btn-xs btn-outline-primary w-100 mb-2">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> View Passport Document
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted fs-8 d-block mb-2">No file uploaded</span>
+                                {% endif %}
+
+                                {% if booking.documentVerificationStatus != 'verified' %}
+                                    <div class="form-check form-check-inline fs-8">
+                                        <input class="form-check-input" type="radio" name="t_{{ forloop.counter0 }}_passport_action" id="p_v_{{ forloop.counter }}" value="verify" {% if traveler.travelDocuments.passport.file.status == 'verified' %}checked{% endif %}>
+                                        <label class="form-check-label text-success fw-bold" for="p_v_{{ forloop.counter }}">Approve</label>
+                                    </div>
+                                    <div class="form-check form-check-inline fs-8">
+                                        <input class="form-check-input" type="radio" name="t_{{ forloop.counter0 }}_passport_action" id="p_r_{{ forloop.counter }}" value="reject" {% if traveler.travelDocuments.passport.file.status == 'rejected' %}checked{% endif %}>
+                                        <label class="form-check-label text-danger fw-bold" for="p_r_{{ forloop.counter }}">Reject</label>
+                                    </div>
+                                    <input type="text" name="t_{{ forloop.counter0 }}_passport_reason" class="form-control form-control-sm fs-8 mt-1" placeholder="Rejection reason if rejecting..." value="{{ traveler.travelDocuments.passport.file.rejectionReason }}">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- National ID -->
+                        <div class="col-md-6">
+                            <div class="p-2 border rounded bg-dark">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold fs-8"><i class="bi bi-card-heading me-1 text-primary"></i>National ID</span>
+                                    {% if traveler.travelDocuments.nationalId.file.status == 'verified' %}
+                                        <span class="badge bg-success-subtle text-success border fs-8">Verified</span>
+                                    {% elif traveler.travelDocuments.nationalId.file.status == 'rejected' %}
+                                        <span class="badge bg-danger-subtle text-danger border fs-8">Rejected</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border fs-8">Pending</span>
+                                    {% endif %}
+                                </div>
+                                <div class="fs-8 text-muted mb-2">No: {{ traveler.travelDocuments.nationalId.number|default:"N/A" }}</div>
+                                {% if traveler.travelDocuments.nationalId.file.secureUrl %}
+                                    <a href="{{ traveler.travelDocuments.nationalId.file.secureUrl }}" target="_blank" class="btn btn-xs btn-outline-primary w-100 mb-2">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> View National ID
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted fs-8 d-block mb-2">No file uploaded</span>
+                                {% endif %}
+
+                                {% if booking.documentVerificationStatus != 'verified' %}
+                                    <div class="form-check form-check-inline fs-8">
+                                        <input class="form-check-input" type="radio" name="t_{{ forloop.counter0 }}_nationalId_action" id="nid_v_{{ forloop.counter }}" value="verify" {% if traveler.travelDocuments.nationalId.file.status == 'verified' %}checked{% endif %}>
+                                        <label class="form-check-label text-success fw-bold" for="nid_v_{{ forloop.counter }}">Approve</label>
+                                    </div>
+                                    <div class="form-check form-check-inline fs-8">
+                                        <input class="form-check-input" type="radio" name="t_{{ forloop.counter0 }}_nationalId_action" id="nid_r_{{ forloop.counter }}" value="reject" {% if traveler.travelDocuments.nationalId.file.status == 'rejected' %}checked{% endif %}>
+                                        <label class="form-check-label text-danger fw-bold" for="nid_r_{{ forloop.counter }}">Reject</label>
+                                    </div>
+                                    <input type="text" name="t_{{ forloop.counter0 }}_nationalId_reason" class="form-control form-control-sm fs-8 mt-1" placeholder="Rejection reason if rejecting..." value="{{ traveler.travelDocuments.nationalId.file.rejectionReason }}">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Visa -->
+                        <div class="col-md-6">
+                            <div class="p-2 border rounded bg-dark">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold fs-8"><i class="bi bi-passport me-1 text-primary"></i>Travel Visa</span>
+                                    {% if traveler.travelDocuments.visa.file.status == 'verified' %}
+                                        <span class="badge bg-success-subtle text-success border fs-8">Verified</span>
+                                    {% elif traveler.travelDocuments.visa.file.status == 'rejected' %}
+                                        <span class="badge bg-danger-subtle text-danger border fs-8">Rejected</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border fs-8">Pending</span>
+                                    {% endif %}
+                                </div>
+                                <div class="fs-8 text-muted mb-2">No: {{ traveler.travelDocuments.visa.number|default:"N/A" }}</div>
+                                {% if traveler.travelDocuments.visa.file.secureUrl %}
+                                    <a href="{{ traveler.travelDocuments.visa.file.secureUrl }}" target="_blank" class="btn btn-xs btn-outline-primary w-100 mb-2">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> View Visa File
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted fs-8 d-block mb-2">No file uploaded</span>
+                                {% endif %}
+
+                                {% if booking.documentVerificationStatus != 'verified' %}
+                                    <div class="form-check form-check-inline fs-8">
+                                        <input class="form-check-input" type="radio" name="t_{{ forloop.counter0 }}_visa_action" id="v_v_{{ forloop.counter }}" value="verify" {% if traveler.travelDocuments.visa.file.status == 'verified' %}checked{% endif %}>
+                                        <label class="form-check-label text-success fw-bold" for="v_v_{{ forloop.counter }}">Approve</label>
+                                    </div>
+                                    <div class="form-check form-check-inline fs-8">
+                                        <input class="form-check-input" type="radio" name="t_{{ forloop.counter0 }}_visa_action" id="v_r_{{ forloop.counter }}" value="reject" {% if traveler.travelDocuments.visa.file.status == 'rejected' %}checked{% endif %}>
+                                        <label class="form-check-label text-danger fw-bold" for="v_r_{{ forloop.counter }}">Reject</label>
+                                    </div>
+                                    <input type="text" name="t_{{ forloop.counter0 }}_visa_reason" class="form-control form-control-sm fs-8 mt-1" placeholder="Rejection reason if rejecting..." value="{{ traveler.travelDocuments.visa.file.rejectionReason }}">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Travel Insurance -->
+                        <div class="col-md-6">
+                            <div class="p-2 border rounded bg-dark">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold fs-8"><i class="bi bi-shield-check me-1 text-primary"></i>Travel Insurance</span>
+                                    {% if traveler.travelDocuments.insurance.file.status == 'verified' %}
+                                        <span class="badge bg-success-subtle text-success border fs-8">Verified</span>
+                                    {% elif traveler.travelDocuments.insurance.file.status == 'rejected' %}
+                                        <span class="badge bg-danger-subtle text-danger border fs-8">Rejected</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border fs-8">Pending</span>
+                                    {% endif %}
+                                </div>
+                                <div class="fs-8 text-muted mb-2">Provider: {{ traveler.travelDocuments.insurance.provider|default:"N/A" }}</div>
+                                {% if traveler.travelDocuments.insurance.file.secureUrl %}
+                                    <a href="{{ traveler.travelDocuments.insurance.file.secureUrl }}" target="_blank" class="btn btn-xs btn-outline-primary w-100 mb-2">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> View Insurance Policy
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted fs-8 d-block mb-2">No file uploaded</span>
+                                {% endif %}
+
+                                {% if booking.documentVerificationStatus != 'verified' %}
+                                    <div class="form-check form-check-inline fs-8">
+                                        <input class="form-check-input" type="radio" name="t_{{ forloop.counter0 }}_insurance_action" id="i_v_{{ forloop.counter }}" value="verify" {% if traveler.travelDocuments.insurance.file.status == 'verified' %}checked{% endif %}>
+                                        <label class="form-check-label text-success fw-bold" for="i_v_{{ forloop.counter }}">Approve</label>
+                                    </div>
+                                    <div class="form-check form-check-inline fs-8">
+                                        <input class="form-check-input" type="radio" name="t_{{ forloop.counter0 }}_insurance_action" id="i_r_{{ forloop.counter }}" value="reject" {% if traveler.travelDocuments.insurance.file.status == 'rejected' %}checked{% endif %}>
+                                        <label class="form-check-label text-danger fw-bold" for="i_r_{{ forloop.counter }}">Reject</label>
+                                    </div>
+                                    <input type="text" name="t_{{ forloop.counter0 }}_insurance_reason" class="form-control form-control-sm fs-8 mt-1" placeholder="Rejection reason if rejecting..." value="{{ traveler.travelDocuments.insurance.file.rejectionReason }}">
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if booking.documentVerificationStatus != 'verified' %}
+                    <div class="mb-3">
+                        <label class="form-label fs-8 text-muted fw-semibold">Contact Phone Number For Offline Instructions Email</label>
+                        <input type="text" name="contact_phone" class="form-control" value="+91 91111 11111">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                        <i class="bi bi-check-circle-fill me-1"></i> Save Document Verification Decisions & Send Email Notification
+                    </button>
+                {% else %}
+                    <div class="alert alert-success fs-7 mb-0">
+                        <i class="bi bi-check-circle-fill me-2"></i> Document verification completed. Instructions email has been delivered to customer. Documents are locked in read-only view.
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: Offline Payment & Journey Status Controls -->
+    <div class="col-lg-4">
+        <!-- Offline Payment Card -->
+        <div class="card-enterprise p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-wallet2 me-2 text-primary"></i>Offline Payment Control</h5>
+            <div class="p-3 bg-body-tertiary rounded border fs-7 mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Payment Status:</span>
+                    <strong>{{ booking.payment.status|title }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Amount Paid:</span>
+                    <strong class="text-success">${{ booking.amountPaid }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Remaining Balance:</span>
+                    <strong class="text-danger">${{ booking.remainingAmount }}</strong>
+                </div>
+            </div>
+
+            {% if booking.payment.status != 'fullPaid' %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="mark_full_paid">
+                    <button type="submit" class="btn btn-success w-100 fw-semibold mb-2">
+                        <i class="bi bi-check-lg me-1"></i> Mark Payment as "FULL PAID"
+                    </button>
+                </form>
+                <p class="text-muted fs-8 mb-0">Use this action when customer pays remaining balance offline or at office desk.</p>
+            {% else %}
+                <div class="badge bg-success-subtle text-success border border-success-subtle w-100 p-2 fs-7">
+                    <i class="bi bi-check-circle-fill me-1"></i> Full Payment Received
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Travel Journey Status Card -->
+        <div class="card-enterprise p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-calendar-check me-2 text-primary"></i>Travel Journey Status</h5>
+            <div class="p-3 bg-body-tertiary rounded border fs-7 mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Current Status:</span>
+                    <strong class="text-primary">{{ booking.bookingStatus|title }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Travel Date:</span>
+                    <strong>{{ booking.travelDate|slice:":10" }}</strong>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="mark_journey_status">
+                <div class="mb-3">
+                    <label class="form-label fs-7 fw-semibold">Update Journey Status</label>
+                    <select name="booking_status" class="form-select fs-7">
+                        <option value="completed" {% if booking.bookingStatus == 'completed' %}selected{% endif %}>Completed (Trip Finished)</option>
+                        <option value="expired" {% if booking.bookingStatus == 'expired' %}selected{% endif %}>Expired (Travel Date Passed)</option>
+                        <option value="confirmed" {% if booking.bookingStatus == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="cancelled" {% if booking.bookingStatus == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-outline-primary w-100 fw-semibold">
+                    <i class="bi bi-flag-fill me-1"></i> Save Journey Status & Enable Review
+                </button>
+            </form>
+            <p class="text-muted fs-8 mt-2 mb-0">Setting status to 'Completed' or 'Expired' allows the customer to write and submit a review for the tour expedition.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,173 @@
+<div id="sidebar-wrapper">
+
+    <!-- ==========================================
+         Brand
+    =========================================== -->
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">
+            <i class="bi bi-compass"></i>
+        </div>
+
+        <div>
+            <div class="fw-bold fs-6 lh-1">
+                Natours Travel
+            </div>
+
+            <div class="fs-8 text-white-50">
+                Enterprise Admin
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         Navigation
+    =========================================== -->
+    <div class="sidebar-nav overflow-y-auto"
+         style="max-height:calc(100vh - 75px);">
+
+        <!-- Dashboard -->
+        {% if request.user.is_superuser or request.user.staff_profile.can_view_dashboard %}
+        <div class="nav-category">
+            Dashboard
+        </div>
+
+        <a href="{% url 'dashboard:index' %}"
+           class="nav-link {% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}">
+            <i class="bi bi-grid-1x2"></i>
+            <span>Dashboard</span>
+        </a>
+        {% endif %}
+
+
+        {% if request.user.is_superuser or request.staff_profile.can_view_tours %}
+        <div class="nav-category">
+            Tour Management
+        </div>
+
+        <a href="{% url 'tours:list' %}"
+           class="nav-link {% if request.resolver_match.app_name == 'tours' %}active{% endif %}">
+            <i class="bi bi-map"></i>
+            <span>Tours & Expeditions</span>
+        </a>
+
+        <a href="{% url 'bookings:list' %}"
+           class="nav-link {% if request.resolver_match.app_name == 'bookings' %}active{% endif %}">
+            <i class="bi bi-file-earmark-check"></i>
+            <span>Document Audit & Bookings</span>
+        </a>
+        {% endif %}
+
+
+        <!-- Consultants -->
+        {% if request.user.is_superuser or request.staff_profile.can_view_consultants %}
+        <div class="nav-category">
+            Customer Services
+        </div>
+
+        <a href="{% url 'queries:list' %}"
+           class="nav-link {% if request.resolver_match.app_name == 'queries' %}active{% endif %}">
+            <i class="bi bi-life-preserver"></i>
+            <span>Booking Support Queries</span>
+        </a>
+
+        <a href="{% url 'consultants:list' %}"
+           class="nav-link {% if request.resolver_match.app_name == 'consultants' %}active{% endif %}">
+            <i class="bi bi-chat-dots"></i>
+            <span>Consultation Requests</span>
+        </a>
+        {% endif %}
+
+
+        <!-- Staff -->
+        {% if request.user.is_superuser or request.staff_profile.can_manage_staff %}
+        <div class="nav-category">
+            Administration
+        </div>
+
+        <a href="{% url 'accounts:staff_list' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'staff_list' %}active{% endif %}">
+            <i class="bi bi-people"></i>
+            <span>Staff Roster</span>
+        </a>
+        {% endif %}
+
+        <!-- Staff -->
+        {% if request.user.is_superuser or request.user.staff_profile.can_manage_staff %}
+        <div class="nav-category">
+            Administration
+        </div>
+
+        <a href="{% url 'accounts:staff_list' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'staff_list' %}active{% endif %}">
+            <i class="bi bi-people"></i>
+            <span>Staff Roster</span>
+        </a>
+        {% endif %}
+
+
+        <!-- Roles -->
+        {% if request.user.is_superuser or request.user.staff_profile.can_manage_roles %}
+        <a href="{% url 'accounts:role_list' %}"
+           class="nav-link {% if 'role' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-shield-lock"></i>
+            <span>Roles & Permissions</span>
+        </a>
+        {% endif %}
+
+
+      
+
+
+        <!-- Profile -->
+        {% if request.user.is_superuser or request.user.staffProfile.can_view_profile %}
+        <div class="nav-category">
+            My Account
+        </div>
+
+        <a href="{% url 'accounts:profile' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <i class="bi bi-person-circle"></i>
+            <span>My Profile</span>
+        </a>
+        {% endif %}
+
+
+        <!-- ==========================================
+             User Card
+        =========================================== -->
+        <div class="p-3 mt-4 border-top border-secondary-subtle">
+
+            <div class="d-flex align-items-center gap-3 mb-3">
+
+                <img
+                    src="{{ request.staff_profile.profile_image|default:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' }}"
+                    class="rounded-circle border border-secondary"
+                    width="42"
+                    height="42"
+                    alt="Profile">
+
+                <div class="overflow-hidden">
+
+                    <div class="fw-semibold text-white text-truncate fs-7">
+                        {{ request.user.get_full_name|default:request.user.username }}
+                    </div>
+
+                    <div class="text-white-50 fs-8">
+                        {{ request.staff_profile.get_role_display }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <a href="{% url 'accounts:logout' %}"
+               class="btn btn-outline-danger btn-sm w-100">
+                <i class="bi bi-box-arrow-right me-2"></i>
+                Sign Out
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Query Details | Natours Travel Admin{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'queries:list' %}" class="btn btn-sm btn-outline-secondary mb-2">
+        <i class="bi bi-arrow-left me-1"></i> Back to All Support Queries
+    </a>
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-chat-left-dots text-primary me-2"></i>{{ query.subject }}</h3>
+            <p class="text-muted fs-7 mb-0">Category: <strong>{{ query.category }}</strong> | Submitted by <strong>{{ query.user.name }}</strong> ({{ query.user.email }})</p>
+        </div>
+        <span class="badge {% if query.status == 'Resolved' %}bg-success{% elif query.status == 'In Progress' %}bg-primary{% else %}bg-warning text-dark{% endif %} fs-7 p-2">
+            Status: {{ query.status }}
+        </span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Query & Booking Details -->
+    <div class="col-lg-7">
+        <!-- Customer Message Card -->
+        <div class="card-enterprise p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Customer Inquiry</h5>
+            <div class="p-3 bg-body-tertiary rounded border fs-7 mb-3">
+                <p class="mb-0 text-body" style="white-space: pre-wrap;">{{ query.message }}</p>
+            </div>
+            <div class="text-muted fs-8">
+                Contact Preference: <strong class="text-capitalize">{{ query.contactPreference }}</strong> | Submitted on {{ query.createdAt|slice:":10" }}
+            </div>
+        </div>
+
+        <!-- Associated Booking Details Card -->
+        <div class="card-enterprise p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-ticket-perforated me-2 text-primary"></i>Associated Booking Details</h5>
+            {% if query.booking %}
+                <div class="row g-3 fs-7">
+                    <div class="col-md-6">
+                        <span class="text-muted d-block fs-8">Booking Number</span>
+                        <strong class="font-monospace text-primary fs-6">{{ query.booking.bookingNumber|default:query.booking }}</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="text-muted d-block fs-8">Tour Name</span>
+                        <strong class="text-body">{{ query.booking.tour.name|default:"Tour Expedition" }}</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="text-muted d-block fs-8">Travel Date</span>
+                        <strong class="text-body">{{ query.booking.travelDate|slice:":10" }}</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="text-light d-block fs-8">Booking Status</span>
+                        <span class="badge bg-secondary-subtle text-light border">{{ query.booking.bookingStatus|title }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="text-muted d-block fs-8">Total Amount</span>
+                        <strong class="text-success">${{ query.booking.totalAmount }}</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="text-muted d-block fs-8">Payment Status</span>
+                        <span class="badge bg-info-subtle text-info border">{{ query.booking.payment.status|default:"Pending" }}</span>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <a href="{% url 'bookings:detail' query.booking.id %}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-file-earmark-check me-1"></i> Open Full Booking & Document Verification
+                    </a>
+                </div>
+            {% else %}
+                <p class="text-muted fs-7 mb-0">No booking reference associated with this query.</p>
+            {% endif %}
+        </div>
+
+        <!-- Conversation History Thread -->
+        <div class="card-enterprise p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-chat-left-text me-2 text-primary"></i>Response History</h5>
+            {% for resp in query.responses %}
+                <div class="p-3 mb-3 rounded border {% if resp.sender == 'support' %}bg-primary-subtle border-primary-subtle ms-3{% else %}bg-body-tertiary me-3{% endif %} fs-7">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="{% if resp.sender == 'support' %}text-primary{% else %}text-body{% endif %}">
+                            {% if resp.sender == 'support' %}<i class="bi bi-headset me-1"></i>Natours Support Team{% else %}<i class="bi bi-person me-1"></i>Customer Response{% endif %}
+                        </strong>
+                        <span class="fs-8 text-muted">{{ resp.createdAt|slice:":16" }}</span>
+                    </div>
+                    <p class="mb-0" style="white-space: pre-wrap;">{{ resp.message }}</p>
+                </div>
+            {% empty %}
+                <p class="text-muted fs-7 mb-0">No responses logged yet. Use the form on the right to reply directly to the customer via email.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right Column: Email Reply & Status Actions -->
+     {% if  query.status != 'Closed' %}
+     
+    <div class="col-lg-5">
+        <div class="card-enterprise p-4 sticky-top" style="top: 20px;">
+            <h5 class="fw-bold mb-3"><i class="bi bi-reply-fill me-2 text-primary"></i>Send Direct Email Reply</h5>
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reply">
+                
+                <div class="mb-3">
+                    <label class="form-label fs-7 fw-semibold">Customer Email</label>
+                    <input type="email" class="form-control" value="{{ query.user.email }}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fs-7 fw-semibold">Update Status On Reply</label>
+                    <select name="status" class="form-select fs-7">
+                        <option value="In Progress" {% if query.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Resolved" {% if query.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="Closed" {% if query.status == 'Closed' %}selected{% endif %}>Closed</option>
+                        <option value="Open" {% if query.status == 'Open' %}selected{% endif %}>Keep Open</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fs-7 fw-semibold">Response Message (Sent via Email)</label>
+                    <textarea name="message" class="form-control fs-7" rows="6" placeholder="Type your response to the customer..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                    <i class="bi bi-send-fill me-1"></i> Send Reply Email & Update Status
+                </button>
+            </form>
+
+            <div class="pt-3 border-top">
+                <h6 class="fw-bold mb-2 fs-7">Quick Status Change</h6>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_status">
+                    <div class="input-group">
+                        <select name="status" class="form-select fs-7">
+                            <option value="Open" {% if query.status == 'Open' %}selected{% endif %}>Open</option>
+                            <option value="In Progress" {% if query.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Resolved" {% if query.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="Closed" {% if query.status == 'Closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline-secondary fs-7">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
